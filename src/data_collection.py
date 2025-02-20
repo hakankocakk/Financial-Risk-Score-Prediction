@@ -6,7 +6,8 @@ from sklearn.model_selection import train_test_split
 
 
 def data_colletion(dataframe):
-    
+
+    dataframe = dataframe.drop(["LoanApproved", "ApplicationDate"], axis=1)
     train, _ = train_test_split(dataframe, test_size=0.3, random_state=42)
     validation, test = train_test_split(_, test_size=0.5, random_state=42)
 
