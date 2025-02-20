@@ -5,8 +5,12 @@ from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler,
 import joblib
 
 
-data_path = os.path.join(os.path.dirname(__file__), "data", "processed")
+data_path_input = os.path.join(os.path.dirname(__file__), "data", "raw")
+data_path_output = os.path.join(os.path.dirname(__file__), "data", "processed")
 model_path = os.path.join(os.path.dirname(__file__), "model")
+
+os.makedirs(data_path_output)
+os.makedirs(model_path)
 
 
 def create_cols_types(dataframe, threshold_cat=8):
@@ -42,7 +46,7 @@ def ordinalencoding(dataframe, train=True):
     if train:
         enc = OrdinalEncoder(categories=[Employment])
         dataframe[columns_to_encode] = enc.fit_transform(dataframe[columns_to_encode])
-        joblib.dump(enc, 'ordinal_encoder.pkl')
+        joblib.dump(enc, os.path.join(model_path, 'ordinal_encoder.pkl'))
     else:
         loaded_encoder = joblib.load(os.path.join(model_path, 'ordinal_encoder.pkl'))
         dataframe[columns_to_encode] = loaded_encoder.transform(dataframe[columns_to_encode])
@@ -57,7 +61,7 @@ def onehotencoder(dataframe, train=True):
     if train:
         ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='first')
         encoded_cols = ohe.fit_transform(dataframe[one_hot_cat_cols])
-        joblib.dump(ohe, 'one_hot_encoder.pkl')
+        joblib.dump(ohe, os.path.join(model_path, 'one_hot_encoder.pkl'))
         new_columns = ohe.get_feature_names_out(one_hot_cat_cols)
         encoded_df = pd.DataFrame(encoded_cols, columns=new_columns, index=dataframe.index)
         dataframe = pd.concat([dataframe, encoded_df], axis=1)
@@ -78,7 +82,7 @@ def normalization(dataframe, num_cols, train=True):
     if train:
         scaler = StandardScaler()
         dataframe[num_cols] = scaler.fit_transform(dataframe[num_cols])
-        joblib.dump(scaler, 'standardscaler.pkl')
+        joblib.dump(scaler, os.path.join(model_path, 'standardscaler.pkl'))
     else:
         loaded_scaler = joblib.load(os.path.join(model_path, 'standardscaler.pkl'))
         dataframe[num_cols] = loaded_scaler.transform(dataframe[num_cols])
@@ -88,9 +92,9 @@ def normalization(dataframe, num_cols, train=True):
 
 
 
-train = pd.read_csv(os.path.join(data_path, "train.csv"))
-validation = pd.read_csv(os.path.join(data_path, "validation.csv"))
-test = pd.read_csv(os.path.join(data_path, "test.csv"))
+train = pd.read_csv(os.path.join(data_path_input, "train.csv"))
+validation = pd.read_csv(os.path.join(data_path_input, "validation.csv"))
+test = pd.read_csv(os.path.join(data_path_input, "test.csv"))
 
 cat_cols, num_cols = create_cols_types(train)
 
@@ -113,9 +117,6 @@ validation_data = normalization(validation, num_cols, train=False)
 test_data = normalization(test, num_cols, train=False)
 
 
-data_path = os.path.join(os.path.dirname(__file__), "data", "raw")
-os.makedirs(data_path)
-
-train_data.to_csv(os.path.join(data_path, "train.csv"), index=False)
-validation_data.to_csv(os.path.join(data_path, "validation.csv"), index=False)
-test_data.to_csv(os.path.join(data_path, "test.csv"), index=False)
+train_data.to_csv(os.path.join(data_path_output, "train.csv"), index=False)
+validation_data.to_csv(os.path.join(data_path_output, "validation.csv"), index=False)
+test_data.to_csv(os.path.join(data_path_output, "test.csv"), index=False)
