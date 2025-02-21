@@ -5,10 +5,10 @@ stages:
     deps:
     - path: src/data_collection.py
       hash: md5
-      md5: 8ccf046c06d4be5d2834d7e73050109a
-      size: 882
+      md5: 63ec09525a17c2a722d0835319aa2148
+      size: 888
     outs:
-    - path: src/data/raw
+    - path: data/raw
       hash: md5
       md5: b09d7ba1187575e1c15497acee2f7f9c.dir
       size: 5217448
@@ -16,17 +16,17 @@ stages:
   data_preprocess:
     cmd: python src/data_preprocess.py
     deps:
-    - path: src/data/raw
+    - path: data/raw
       hash: md5
       md5: b09d7ba1187575e1c15497acee2f7f9c.dir
       size: 5217448
       nfiles: 3
     - path: src/data_preprocess.py
       hash: md5
-      md5: a4691a184daddf0e2ff21d8504ff04b4
-      size: 5345
+      md5: 924bb8a2e24de7c267504d100b5f194e
+      size: 5357
     outs:
-    - path: src/data/processed
+    - path: data/processed
       hash: md5
       md5: 2b0c6d6a962b060630d54e6f88801049.dir
       size: 14871334
@@ -39,23 +39,46 @@ stages:
   model_building:
     cmd: python src/model.py
     deps:
-    - path: src/data/processed
+    - path: data/processed
       hash: md5
       md5: 2b0c6d6a962b060630d54e6f88801049.dir
       size: 14871334
       nfiles: 3
     - path: src/model.py
       hash: md5
-      md5: 8ebb1bd809467efe5578e095cbfbf0e7
-      size: 5782
+      md5: 954f6222a045f8a27a5b47443daf88b9
+      size: 5594
     outs:
     - path: src/model/log
       hash: md5
-      md5: cb91479d15a794698e7213d25199e8a4.dir
-      size: 16173923
+      md5: de83e9b783e619d1258b80c00f9cfe27.dir
+      size: 16173956
       nfiles: 3
     - path: src/model/ml_model
       hash: md5
-      md5: 6c1eea9ae6fbdb818b16a850c668e1f2.dir
-      size: 10094175
+      md5: b78fac53f9e27479c3dd04dc507a6b9b.dir
+      size: 10094042
       nfiles: 4
+  model_evaluation:
+    cmd: python src/model_eval.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 2b0c6d6a962b060630d54e6f88801049.dir
+      size: 14871334
+      nfiles: 3
+    - path: src/model.py
+      hash: md5
+      md5: 954f6222a045f8a27a5b47443daf88b9
+      size: 5594
+    - path: src/model/ml_model
+      hash: md5
+      md5: b78fac53f9e27479c3dd04dc507a6b9b.dir
+      size: 10094042
+      nfiles: 4
+    outs:
+    - path: src/model/evaluation
+      hash: md5
+      md5: 7d4047dd7b624886eb106abc3c68e758.dir
+      size: 184
+      nfiles: 1
