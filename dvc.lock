@@ -23,15 +23,15 @@ stages:
       nfiles: 3
     - path: src/data_preprocess.py
       hash: md5
-      md5: fa46c8339eb50c8176856a8d8fdc3030
-      size: 5328
+      md5: a4691a184daddf0e2ff21d8504ff04b4
+      size: 5345
     outs:
     - path: src/data/processed
       hash: md5
       md5: 2b0c6d6a962b060630d54e6f88801049.dir
       size: 14871334
       nfiles: 3
-    - path: src/model
+    - path: src/model/process_model
       hash: md5
       md5: ec350ae2522ca414957321c3fefa35b7.dir
       size: 6375
