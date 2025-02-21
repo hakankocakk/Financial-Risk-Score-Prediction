@@ -7,7 +7,7 @@ import joblib
 
 data_path_input = os.path.join(os.path.dirname(__file__), "data", "raw")
 data_path_output = os.path.join(os.path.dirname(__file__), "data", "processed")
-model_path = os.path.join(os.path.dirname(__file__), "model")
+model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
 
 os.makedirs(data_path_output)
 os.makedirs(model_path)
