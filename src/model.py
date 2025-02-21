@@ -14,7 +14,7 @@ from catboost import CatBoostRegressor
 from sklearn.ensemble import VotingRegressor
 
 
-data_path_input = os.path.join(os.path.dirname(__file__), "data", "processed")
+data_path_input = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 model_path = os.path.join(os.path.dirname(__file__), "model", "ml_model")
 log_path = os.path.join(os.path.dirname(__file__), "model", "log")
 
@@ -70,15 +70,12 @@ save_callback_catboost = SaveAllIterationsCallback_Catboost()
 
 
 
-def train_val_test_split(train, validation):
+def train_val_test_split(dataframe):
 
-    X_train = train.loc[:, ~train.columns.str.contains("RiskScore")]
-    y_train = train.loc[:, "RiskScore"]
-
-    X_val = validation.loc[:, ~validation.columns.str.contains("RiskScore")]
-    y_val = validation.loc[:, "RiskScore"]
+    X_ = dataframe.loc[:, ~dataframe.columns.str.contains("RiskScore")]
+    y_ = dataframe.loc[:, "RiskScore"]
     
-    return X_train, y_train, X_val, y_val
+    return X_, y_
 
 
 def log_callback(env):
@@ -184,9 +181,9 @@ def ensemble_model(lightgbm, xgboost, catboost, x_train, y_train):
 
 train = pd.read_csv(os.path.join(data_path_input, "train.csv"))
 validation = pd.read_csv(os.path.join(data_path_input, "validation.csv"))
-test = pd.read_csv(os.path.join(data_path_input, "test.csv"))
 
-X_train, y_train, X_val, y_val = train_val_test_split(train, validation)
+X_train, y_train = train_val_test_split(train)
+X_val, y_val = train_val_test_split(validation)
 
 
 lightgbm_model = lightgbm_final_model(X_train, y_train, X_val, y_val)
