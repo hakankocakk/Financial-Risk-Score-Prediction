@@ -4,21 +4,29 @@ stages:
     deps:
     - src/data_collection.py
     outs:
-    - src/data/raw
+    - data/raw
   data_preprocess:
     cmd: python src/data_preprocess.py
     deps:
-    - src/data/raw
+    - data/raw
     - src/data_preprocess.py
     outs:
-    - src/data/processed
+    - data/processed
     - src/model/process_model
   model_building:
     cmd: python src/model.py
     deps:
-    - src/data/processed
+    - data/processed
     - src/model.py
     outs:
     - src/model/ml_model
     metrics:
     - src/model/log
+  model_evaluation:
+    cmd: python src/model_eval.py
+    deps:
+    - data/processed
+    - src/model.py
+    - src/model/ml_model
+    metrics:
+    - src/model/evaluation
