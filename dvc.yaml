@@ -12,4 +12,13 @@ stages:
     - src/data_preprocess.py
     outs:
     - src/data/processed
-    - src/model
+    - src/model/process_model
+  model_building:
+    cmd: python src/model.py
+    deps:
+    - src/data/processed
+    - src/model.py
+    outs:
+    - src/model/ml_model
+    metrics:
+    - src/model/log
