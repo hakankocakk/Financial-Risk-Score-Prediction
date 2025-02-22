@@ -54,7 +54,6 @@ def data(FinancialInformation : FinancialInformation):
     sample = dp.ordinalencoding(sample, train=False)
     sample = dp.onehotencoding(sample, train=False)
     sample = dp.normalization(sample, train=False)
-    print(4)
 
     return sample
 
