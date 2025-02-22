@@ -3,6 +3,9 @@ stages:
     cmd: python src/data_collection.py
     deps:
     - src/data_collection.py
+    params:
+    - data_collection.val_test_size
+    - data_collection.test_size
     outs:
     - data/raw
   data_preprocess:
@@ -18,6 +21,10 @@ stages:
     deps:
     - data/processed
     - src/model.py
+    params:
+    - model_building.lightgbm_model
+    - model_building.xgboost_model
+    - model_building.catboost_model
     outs:
     - src/model/ml_model
     metrics:
