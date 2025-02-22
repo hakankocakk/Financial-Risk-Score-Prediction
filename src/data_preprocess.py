@@ -32,7 +32,7 @@ def feature_engineering(dataframe):
 
 
 def ordinalencoding(dataframe, train=True):
-
+    model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     Employment = ['Employed', 'Self-Employed', 'Unemployed']
     columns_to_encode = ["EmploymentStatus"]
 
@@ -41,7 +41,7 @@ def ordinalencoding(dataframe, train=True):
         dataframe[columns_to_encode] = enc.fit_transform(dataframe[columns_to_encode])
         joblib.dump(enc, os.path.join(model_path, 'ordinal_encoder.pkl'))
     else:
-        model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
+        
         loaded_encoder = joblib.load(os.path.join(model_path, 'ordinal_encoder.pkl'))
         dataframe[columns_to_encode] = loaded_encoder.transform(dataframe[columns_to_encode])
 
@@ -50,6 +50,7 @@ def ordinalencoding(dataframe, train=True):
 
 def onehotencoding(dataframe, train=True):
 
+    model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     one_hot_cat_cols = ['EducationLevel', 'MaritalStatus', 'HomeOwnershipStatus', 'LoanPurpose', 'NumberOfDependents']
 
     if train:
@@ -61,7 +62,6 @@ def onehotencoding(dataframe, train=True):
         dataframe = pd.concat([dataframe, encoded_df], axis=1)
         dataframe.drop(columns=one_hot_cat_cols, inplace=True)
     else:
-        model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
         loaded_ohe = joblib.load(os.path.join(model_path, 'one_hot_encoder.pkl'))
         encoded_test_data = loaded_ohe.transform(dataframe[one_hot_cat_cols])
         new_columns = loaded_ohe.get_feature_names_out(one_hot_cat_cols)
@@ -73,6 +73,8 @@ def onehotencoding(dataframe, train=True):
 
 
 def normalization(dataframe, train=True):
+
+    model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     num_cols = ['Age', 'AnnualIncome', 'CreditScore', 'Experience', 'LoanAmount', 'LoanDuration', 'MonthlyDebtPayments', 
                 'CreditCardUtilizationRate', 'NumberOfOpenCreditLines', 'NumberOfCreditInquiries', 'DebtToIncomeRatio', 
                 'PaymentHistory', 'LengthOfCreditHistory', 'SavingsAccountBalance', 'CheckingAccountBalance', 'TotalAssets', 
@@ -86,7 +88,6 @@ def normalization(dataframe, train=True):
         dataframe[num_cols] = scaler.fit_transform(dataframe[num_cols])
         joblib.dump(scaler, os.path.join(model_path, 'standardscaler.pkl'))
     else:
-        model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
         loaded_scaler = joblib.load(os.path.join(model_path, 'standardscaler.pkl'))
         dataframe[num_cols] = loaded_scaler.transform(dataframe[num_cols])
 
@@ -123,8 +124,8 @@ if __name__ == "__main__":
     #_, num_cols = create_cols_types(train)
     #num_cols = [col for col in num_cols if col not in ["RiskScore"]]
     train_data = normalization(train, train=True)
-    validation_data = normalization(validation, num_cols, train=False)
-    test_data = normalization(test, num_cols, train=False)
+    validation_data = normalization(validation, train=False)
+    test_data = normalization(test, train=False)
 
 
     train_data.to_csv(os.path.join(data_path_output, "train.csv"), index=False)
