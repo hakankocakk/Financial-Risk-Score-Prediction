@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import yaml
 
 from sklearn.model_selection import GridSearchCV, cross_validate
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -17,6 +18,7 @@ from sklearn.ensemble import VotingRegressor
 data_path_input = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 model_path = os.path.join(os.path.dirname(__file__), "model", "ml_model")
 log_path = os.path.join(os.path.dirname(__file__), "model", "log")
+yaml_path = os.path.join(os.path.dirname(__file__), "..")
 
 os.makedirs(model_path)
 os.makedirs(log_path)
@@ -100,15 +102,9 @@ def save_all_iterations_callback(env):
 
 
 
-def lightgbm_final_model(x_train, y_train, x_val, y_val):
+def lightgbm_final_model(lightgbm_params, x_train, y_train, x_val, y_val):
 
-    best_params = {
-        'colsample_bytree': 0.8,
-        'device': 'gpu',
-        'learning_rate': 0.05,
-        'n_estimators': 400,
-        'verbosity': -1
-        }
+    best_params = lightgbm_params
     
     lgbm_final = LGBMRegressor(**best_params).fit(
         x_train, y_train,
@@ -121,15 +117,9 @@ def lightgbm_final_model(x_train, y_train, x_val, y_val):
     return lgbm_final
 
 
-def xgboost_final_model(x_train, y_train, x_val, y_val):
+def xgboost_final_model(xgboost_params, x_train, y_train, x_val, y_val):
 
-    xgboost_best_params = {
-        'colsample_bytree': 0.7,
-        'learning_rate': 0.1,
-        'max_depth': 5,
-        'n_estimators': 500,
-        'eval_metric': 'rmse'
-        }
+    xgboost_best_params = xgboost_params
 
     xgboost_final = XGBRegressor(**xgboost_best_params).fit(
         x_train, y_train,
@@ -141,15 +131,9 @@ def xgboost_final_model(x_train, y_train, x_val, y_val):
     return xgboost_final
 
 
-def catboost_final_model(x_train, y_train, x_val, y_val):
+def catboost_final_model(catboost_params, x_train, y_train, x_val, y_val):
 
-    catboost_best_params = {
-        'depth': 6,
-        'iterations': 700,
-        'learning_rate': 0.1,
-        'task_type': 'CPU',
-        'eval_metric' : 'RMSE'
-        }
+    catboost_best_params = catboost_params
     
     catboost_final = CatBoostRegressor(**catboost_best_params).fit(
         x_train, y_train,
@@ -185,10 +169,14 @@ validation = pd.read_csv(os.path.join(data_path_input, "validation.csv"))
 X_train, y_train = train_val_test_split(train)
 X_val, y_val = train_val_test_split(validation)
 
+model_params = yaml.safe_load(open(os.path.join(yaml_path, 'params.yaml'), 'r'))['model_building']
+lightgbm_params = model_params["lightgbm_model"]
+xgboost_params = model_params["xgboost_model"]
+catboost_params = model_params["catboost_model"]
 
-lightgbm_model = lightgbm_final_model(X_train, y_train, X_val, y_val)
-xgboost_model = xgboost_final_model(X_train, y_train, X_val, y_val)
-catboost_model = catboost_final_model(X_train, y_train, X_val, y_val)
+lightgbm_model = lightgbm_final_model(lightgbm_params, X_train, y_train, X_val, y_val)
+xgboost_model = xgboost_final_model(xgboost_params, X_train, y_train, X_val, y_val)
+catboost_model = catboost_final_model(catboost_params, X_train, y_train, X_val, y_val)
 
 ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train)
 
