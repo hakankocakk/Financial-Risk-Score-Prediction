@@ -5,8 +5,12 @@ stages:
     deps:
     - path: src/data_collection.py
       hash: md5
-      md5: 63ec09525a17c2a722d0835319aa2148
-      size: 888
+      md5: 160d75fe4aebdde3074abccbe2df4be1
+      size: 1137
+    params:
+      params.yaml:
+        data_collection.test_size: 0.5
+        data_collection.val_test_size: 0.3
     outs:
     - path: data/raw
       hash: md5
@@ -23,8 +27,8 @@ stages:
       nfiles: 3
     - path: src/data_preprocess.py
       hash: md5
-      md5: 924bb8a2e24de7c267504d100b5f194e
-      size: 5357
+      md5: 9b0859395eef31250324742951f8461c
+      size: 6555
     outs:
     - path: data/processed
       hash: md5
