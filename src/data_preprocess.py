@@ -6,74 +6,102 @@ import joblib
 
 
 
-def create_cols_types(dataframe, threshold_cat=8):
+def load_data(path : str) -> pd.DataFrame:
+    try:
+        return pd.read_csv(path)
+    except Exception as e:
+        raise Exception(f"Error loading data from {path} : {e}")
+    
 
-    cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
-    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]
-    num_but_cat_cols = [col for col in num_cols if dataframe[col].nunique() < threshold_cat]
-    cat_cols += num_but_cat_cols
-    num_cols = [col for col in num_cols if col not in num_but_cat_cols and col not in ["RiskScore"]]
-
-    return cat_cols, num_cols
-
-
-def feature_engineering(dataframe):
-
-    dataframe["AnIncomeToAssetsRatio"] = dataframe["AnnualIncome"] / dataframe["TotalAssets"]
-    dataframe["AnExperienceToAnIncomeRatio"] = dataframe["Experience"] / dataframe["AnnualIncome"]
-    dataframe["LoantoAnIncomeRatio"] = dataframe["LoanAmount"] / dataframe["AnnualIncome"]
-    dataframe["DependetToAnIncomeRatio"] = dataframe["AnnualIncome"] / (dataframe["NumberOfDependents"] + 1)
-    dataframe["LoansToAssetsRatio"] = dataframe["TotalLiabilities"] / dataframe["TotalAssets"]
-    dataframe["LoanPaymentToIncomeRatio"] = dataframe["MonthlyLoanPayment"] / dataframe["MonthlyIncome"]
-    dataframe["AnIncomeToDepts"] = dataframe["AnnualIncome"] / (dataframe["MonthlyLoanPayment"]*12 + dataframe["MonthlyDebtPayments"]*12)
-    dataframe["AssetsToLoan"] = dataframe["TotalAssets"] / (dataframe["TotalLiabilities"] + dataframe["LoanAmount"])
-
-    return dataframe
+def create_cols_types(dataframe: pd.DataFrame, threshold_cat=8):
+    try:
+        cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
+        num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]
+        num_but_cat_cols = [col for col in num_cols if dataframe[col].nunique() < threshold_cat]
+        cat_cols += num_but_cat_cols
+        num_cols = [col for col in num_cols if col not in num_but_cat_cols and col not in ["RiskScore"]]
+        return cat_cols, num_cols
+    except KeyError as e:
+        raise Exception(f"Dataframe not found : {e}")
 
 
-def ordinalencoding(dataframe, train=True):
+def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
+    try:
+        dataframe["AnIncomeToAssetsRatio"] = dataframe["AnnualIncome"] / dataframe["TotalAssets"]
+        dataframe["AnExperienceToAnIncomeRatio"] = dataframe["Experience"] / dataframe["AnnualIncome"]
+        dataframe["LoantoAnIncomeRatio"] = dataframe["LoanAmount"] / dataframe["AnnualIncome"]
+        dataframe["DependetToAnIncomeRatio"] = dataframe["AnnualIncome"] / (dataframe["NumberOfDependents"] + 1)
+        dataframe["LoansToAssetsRatio"] = dataframe["TotalLiabilities"] / dataframe["TotalAssets"]
+        dataframe["LoanPaymentToIncomeRatio"] = dataframe["MonthlyLoanPayment"] / dataframe["MonthlyIncome"]
+        dataframe["AnIncomeToDepts"] = dataframe["AnnualIncome"] / (dataframe["MonthlyLoanPayment"]*12 + dataframe["MonthlyDebtPayments"]*12)
+        dataframe["AssetsToLoan"] = dataframe["TotalAssets"] / (dataframe["TotalLiabilities"] + dataframe["LoanAmount"])
+        return dataframe
+    except KeyError as e:
+        raise Exception(f"Feature not found: {e}")
+
+
+def ordinalencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     Employment = ['Employed', 'Self-Employed', 'Unemployed']
     columns_to_encode = ["EmploymentStatus"]
 
     if train:
-        enc = OrdinalEncoder(categories=[Employment])
-        dataframe[columns_to_encode] = enc.fit_transform(dataframe[columns_to_encode])
-        joblib.dump(enc, os.path.join(model_path, 'ordinal_encoder.pkl'))
+        try:
+            enc = OrdinalEncoder(categories=[Employment])
+            dataframe[columns_to_encode] = enc.fit_transform(dataframe[columns_to_encode])
+            joblib.dump(enc, os.path.join(model_path, 'ordinal_encoder.pkl'))
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error save model file {e}")
     else:
-        
-        loaded_encoder = joblib.load(os.path.join(model_path, 'ordinal_encoder.pkl'))
-        dataframe[columns_to_encode] = loaded_encoder.transform(dataframe[columns_to_encode])
+        try:
+            loaded_encoder = joblib.load(os.path.join(model_path, 'ordinal_encoder.pkl'))
+            dataframe[columns_to_encode] = loaded_encoder.transform(dataframe[columns_to_encode])
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error loading model file {e}")
 
-    return dataframe
 
-
-def onehotencoding(dataframe, train=True):
+def onehotencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
 
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     one_hot_cat_cols = ['EducationLevel', 'MaritalStatus', 'HomeOwnershipStatus', 'LoanPurpose', 'NumberOfDependents']
 
     if train:
-        ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='first')
-        encoded_cols = ohe.fit_transform(dataframe[one_hot_cat_cols])
-        joblib.dump(ohe, os.path.join(model_path, 'one_hot_encoder.pkl'))
-        new_columns = ohe.get_feature_names_out(one_hot_cat_cols)
-        encoded_df = pd.DataFrame(encoded_cols, columns=new_columns, index=dataframe.index)
-        dataframe = pd.concat([dataframe, encoded_df], axis=1)
-        dataframe.drop(columns=one_hot_cat_cols, inplace=True)
+        try:
+            ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='first')
+            encoded_cols = ohe.fit_transform(dataframe[one_hot_cat_cols])
+            joblib.dump(ohe, os.path.join(model_path, 'one_hot_encoder.pkl'))
+            new_columns = ohe.get_feature_names_out(one_hot_cat_cols)
+            encoded_df = pd.DataFrame(encoded_cols, columns=new_columns, index=dataframe.index)
+            dataframe = pd.concat([dataframe, encoded_df], axis=1)
+            dataframe.drop(columns=one_hot_cat_cols, inplace=True)
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error save model file {e}")
     else:
-        loaded_ohe = joblib.load(os.path.join(model_path, 'one_hot_encoder.pkl'))
-        encoded_test_data = loaded_ohe.transform(dataframe[one_hot_cat_cols])
-        new_columns = loaded_ohe.get_feature_names_out(one_hot_cat_cols)
-        encoded_test_df = pd.DataFrame(encoded_test_data, columns=new_columns, index=dataframe.index)
-        dataframe = pd.concat([dataframe, encoded_test_df], axis=1)
-        dataframe.drop(columns=one_hot_cat_cols, inplace=True)
+        try:
+            loaded_ohe = joblib.load(os.path.join(model_path, 'one_hot_encoder.pkl'))
+            encoded_test_data = loaded_ohe.transform(dataframe[one_hot_cat_cols])
+            new_columns = loaded_ohe.get_feature_names_out(one_hot_cat_cols)
+            encoded_test_df = pd.DataFrame(encoded_test_data, columns=new_columns, index=dataframe.index)
+            dataframe = pd.concat([dataframe, encoded_test_df], axis=1)
+            dataframe.drop(columns=one_hot_cat_cols, inplace=True)
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error load model file {e}")
     
-    return dataframe
-
-
-def normalization(dataframe, train=True):
-
+    
+def normalization(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
+    
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     num_cols = ['Age', 'AnnualIncome', 'CreditScore', 'Experience', 'LoanAmount', 'LoanDuration', 'MonthlyDebtPayments', 
                 'CreditCardUtilizationRate', 'NumberOfOpenCreditLines', 'NumberOfCreditInquiries', 'DebtToIncomeRatio', 
@@ -84,18 +112,36 @@ def normalization(dataframe, train=True):
                 'AssetsToLoan']
 
     if train:
-        scaler = StandardScaler()
-        dataframe[num_cols] = scaler.fit_transform(dataframe[num_cols])
-        joblib.dump(scaler, os.path.join(model_path, 'standardscaler.pkl'))
+        try:
+            scaler = StandardScaler()
+            dataframe[num_cols] = scaler.fit_transform(dataframe[num_cols])
+            joblib.dump(scaler, os.path.join(model_path, 'standardscaler.pkl'))
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error save model file {e}")
     else:
-        loaded_scaler = joblib.load(os.path.join(model_path, 'standardscaler.pkl'))
-        dataframe[num_cols] = loaded_scaler.transform(dataframe[num_cols])
+        try:
+            loaded_scaler = joblib.load(os.path.join(model_path, 'standardscaler.pkl'))
+            dataframe[num_cols] = loaded_scaler.transform(dataframe[num_cols])
+            return dataframe
+        except KeyError as e:
+            raise Exception(f"Feature not found: {e}")
+        except Exception as e:
+            raise Exception(f"Error load model file {e}")
 
-    return dataframe
 
+def save_data(data: pd.DataFrame,  data_path : str) -> None:
+    try:
+        data.to_csv(data_path, index=False)
+    except KeyError as e:
+        raise Exception(f"Dataframe not found : {e}")
+    except Exception as e:
+        raise Exception(f"Error save data file {e}")
+    
 
-if __name__ == "__main__":
-
+def main():
     data_path_input = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
     data_path_output = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
@@ -103,31 +149,35 @@ if __name__ == "__main__":
     os.makedirs(data_path_output, exist_ok=True)
     os.makedirs(model_path, exist_ok=True)
 
-    train = pd.read_csv(os.path.join(data_path_input, "train.csv"))
-    validation = pd.read_csv(os.path.join(data_path_input, "validation.csv"))
-    test = pd.read_csv(os.path.join(data_path_input, "test.csv"))
+    try:
+        train = load_data(os.path.join(data_path_input, "train.csv"))
+        validation = load_data(os.path.join(data_path_input, "validation.csv"))
+        test = load_data(os.path.join(data_path_input, "test.csv"))
 
-    cat_cols, num_cols = create_cols_types(train)
+        train = feature_engineering(train)
+        validation = feature_engineering(validation)
+        test = feature_engineering(test)
 
-    train = feature_engineering(train)
-    validation = feature_engineering(validation)
-    test = feature_engineering(test)
+        train = ordinalencoding(train, train=True)
+        validation = ordinalencoding(validation, train=False)
+        test = ordinalencoding(test, train=False)
 
-    train = ordinalencoding(train, train=True)
-    validation = ordinalencoding(validation, train=False)
-    test = ordinalencoding(test, train=False)
+        train = onehotencoding(train, train=True)
+        validation = onehotencoding(validation, train=False)
+        test = onehotencoding(test, train=False)
 
-    train = onehotencoding(train, train=True)
-    validation = onehotencoding(validation, train=False)
-    test = onehotencoding(test, train=False)
+        train_data = normalization(train, train=True)
+        validation_data = normalization(validation, train=False)
+        test_data = normalization(test, train=False)
 
-    #_, num_cols = create_cols_types(train)
-    #num_cols = [col for col in num_cols if col not in ["RiskScore"]]
-    train_data = normalization(train, train=True)
-    validation_data = normalization(validation, train=False)
-    test_data = normalization(test, train=False)
+        save_data(train_data, os.path.join(data_path_output, "train.csv"))
+        save_data(validation_data, os.path.join(data_path_output, "validation.csv"))
+        save_data(test_data, os.path.join(data_path_output, "test.csv"))
 
+    except Exception as e:
+        raise Exception(f"An error occured: {e}")
+    
 
-    train_data.to_csv(os.path.join(data_path_output, "train.csv"), index=False)
-    validation_data.to_csv(os.path.join(data_path_output, "validation.csv"), index=False)
-    test_data.to_csv(os.path.join(data_path_output, "test.csv"), index=False)
+if __name__ == "__main__":
+    main()
+
