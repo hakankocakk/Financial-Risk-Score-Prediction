@@ -61,7 +61,7 @@ Open API documentation page:
 [API Dokümantasyonu](http://127.0.0.1:8000/docs)  
 
 Sending a POST request:
-Click the "POST" button and then the "Try it out" button.  
+Click the `POST` button and then the `Try it out` button.  
 ```bash
 {
   "Age": 32,
@@ -99,8 +99,10 @@ Click the "POST" button and then the "Try it out" button.
   "TotalDebtToIncomeRatio": 0.634820097050131
 }
 ```
-Add this text and click "Execute" button.
+Add this text and click `Execute` button:  
+You can see the prediction result in the `Response body` section.
 
+In the terminal where you are running the API application, stop the API by pressing `CTRL + C`.
 
 ### **About the Developer**
 - Hakan KOCAK
