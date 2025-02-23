@@ -15,19 +15,12 @@ from catboost import CatBoostRegressor
 from sklearn.ensemble import VotingRegressor
 
 
-data_path_input = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
-model_path = os.path.join(os.path.dirname(__file__), "model", "ml_model")
-log_path = os.path.join(os.path.dirname(__file__), "model", "log")
-yaml_path = os.path.join(os.path.dirname(__file__), "..")
-
-os.makedirs(model_path)
-os.makedirs(log_path)
-
 
 
 class SaveAllIterationsCallback_Xgboost(TrainingCallback):
-    def __init__(self):
+    def __init__(self, log_path):
         self.model_log = []
+        self.log_path = log_path
 
     def after_iteration(self, model, epoch, evals_log):
         
@@ -42,16 +35,14 @@ class SaveAllIterationsCallback_Xgboost(TrainingCallback):
         
         self.model_log.append(evals_result)
 
-        with open(os.path.join(log_path, 'xgboost_model_iterations.json'), 'w') as f:
+        with open(os.path.join(self.log_path, 'xgboost_model_iterations.json'), 'w') as f:
             json.dump(self.model_log, f, indent=4)
-
-save_callback_xgboost = SaveAllIterationsCallback_Xgboost()
-
 
 
 class SaveAllIterationsCallback_Catboost:
-    def __init__(self):
+    def __init__(self, log_path):
         self.model_log = []
+        self.log_path = log_path
          
     def after_iteration(self, info):
         evals_result = {
@@ -63,22 +54,37 @@ class SaveAllIterationsCallback_Catboost:
         self.model_log.append(evals_result)
 
         # JSON dosyasına yazma
-        with open(os.path.join(log_path,'catboost_model_iterations.json'), 'w') as f:
+        with open(os.path.join(self.log_path,'catboost_model_iterations.json'), 'w') as f:
             json.dump(self.model_log, f, indent=4)
             
         return True
 
-save_callback_catboost = SaveAllIterationsCallback_Catboost()
 
 
+def load_data(path : str) -> pd.DataFrame:
+    try:
+        return pd.read_csv(path)
+    except Exception as e:
+        raise Exception(f"Error loading data from {path} : {e}")
 
-def train_val_test_split(dataframe):
 
-    X_ = dataframe.loc[:, ~dataframe.columns.str.contains("RiskScore")]
-    y_ = dataframe.loc[:, "RiskScore"]
+def train_val_test_split(dataframe: pd.DataFrame):
+    try:
+        X_ = dataframe.loc[:, ~dataframe.columns.str.contains("RiskScore")]
+        y_ = dataframe.loc[:, "RiskScore"]
+        return X_, y_
+    except KeyError as e:
+        raise Exception(f"Dataframe not found : {e}")
+
+
+def load_yaml(yaml_path : str) -> dict:
+    try:
+        with open(os.path.join(yaml_path, 'params.yaml'), 'r') as file:
+            size_params = yaml.safe_load(file)['model_building']
+            return size_params
+    except Exception as e:
+        raise Exception(f"Error loading paramaters from {yaml_path} : {e}")
     
-    return X_, y_
-
 
 def log_callback(env):
 
@@ -97,86 +103,120 @@ def save_all_iterations_callback(env):
 
     model_log.append(evals_result)
 
+    log_path = os.path.join(os.path.dirname(__file__), "model", "log")
     with open(os.path.join(log_path,'lightgbm_model_iterations.json'), 'w') as f:
         json.dump(model_log, f, indent=4)
 
 
 
-def lightgbm_final_model(lightgbm_params, x_train, y_train, x_val, y_val):
-
-    best_params = lightgbm_params
+def lightgbm_final_model(lightgbm_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, model_path : str):
+    try:
+        best_params = lightgbm_params
+        lgbm_final = LGBMRegressor(**best_params).fit(
+            x_train, y_train,
+            eval_set = [(x_train, y_train), (x_val, y_val)],
+            eval_metric = 'rmse',
+            callbacks = [log_callback, save_all_iterations_callback]
+        )
+    except (TypeError, ValueError) as e:
+        raise Exception(f"Parameter error : {e}")
+    except Exception as e:
+            raise Exception(f"Error model training : {e}")
     
-    lgbm_final = LGBMRegressor(**best_params).fit(
-        x_train, y_train,
-        eval_set = [(x_train, y_train), (x_val, y_val)],
-        eval_metric = 'rmse',
-        callbacks = [log_callback, save_all_iterations_callback]
-    )
-    joblib.dump(lgbm_final, os.path.join(model_path, 'lightgbm.pkl'))
-
-    return lgbm_final
+    try:
+        joblib.dump(lgbm_final, os.path.join(model_path, 'lightgbm.pkl'))
+        return lgbm_final
+    except Exception as e:
+            raise Exception(f"Error save model : {e}")
 
 
-def xgboost_final_model(xgboost_params, x_train, y_train, x_val, y_val):
+def xgboost_final_model(xgboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_xgboost, model_path : str):
+    try:
+        xgboost_best_params = xgboost_params
+        xgboost_final = XGBRegressor(**xgboost_best_params).fit(
+            x_train, y_train,
+            eval_set = [(x_train, y_train), (x_val, y_val)],
+            callbacks = [save_callback_xgboost]
+        )
+    except (TypeError, ValueError) as e:
+        raise Exception(f"Parameter error : {e}")
+    except Exception as e:
+            raise Exception(f"Error model training : {e}")
+    try:
+        joblib.dump(xgboost_final, os.path.join(model_path, 'xgboost.pkl'))
+        return xgboost_final
+    except Exception as e:
+            raise Exception(f"Error save model : {e}")
 
-    xgboost_best_params = xgboost_params
 
-    xgboost_final = XGBRegressor(**xgboost_best_params).fit(
-        x_train, y_train,
-        eval_set = [(x_train, y_train), (x_val, y_val)],
-        callbacks = [save_callback_xgboost]
-    )
-    joblib.dump(xgboost_final, os.path.join(model_path, 'xgboost.pkl'))
+def catboost_final_model(catboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_catboost,  model_path : str):
+    try:
+        catboost_best_params = catboost_params
+        
+        catboost_final = CatBoostRegressor(**catboost_best_params).fit(
+            x_train, y_train,
+            eval_set = [(x_train, y_train), (x_val, y_val)],
+            callbacks = [save_callback_catboost],
+            logging_level='Silent'
+        )
+    except (TypeError, ValueError) as e:
+        raise Exception(f"Parameter error : {e}")
+    except Exception as e:
+            raise Exception(f"Error model training : {e}")
+    try:
+        joblib.dump(catboost_final, os.path.join(model_path, 'catboost.pkl'))
+        return catboost_final
+    except Exception as e:
+            raise Exception(f"Error save model : {e}")
 
-    return xgboost_final
 
 
-def catboost_final_model(catboost_params, x_train, y_train, x_val, y_val):
+def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train : pd.DataFrame, model_path : pd.DataFrame) ->None:
+    try: 
+        voting_regressor = VotingRegressor(
+            estimators=[
+                ('lightgbm', lightgbm),
+                ('xgboost', xgboost),
+                ('catboost', catboost)
+            ]
+        )
+        voting_regressor.fit(x_train, y_train)
+    except Exception as e:
+        raise Exception(f"Error model training : {e}")
+    try:
+        joblib.dump(voting_regressor, os.path.join(model_path, 'ensemble_model.pkl'))
+    except Exception as e:
+            raise Exception(f"Error save model : {e}")
 
-    catboost_best_params = catboost_params
+
+
+def main():
+
+    data_path_input = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
+    model_path = os.path.join(os.path.dirname(__file__), "model", "ml_model")
+    log_path = os.path.join(os.path.dirname(__file__), "model", "log")
+    yaml_path = os.path.join(os.path.dirname(__file__), "..")
     
-    catboost_final = CatBoostRegressor(**catboost_best_params).fit(
-        x_train, y_train,
-        eval_set = [(x_train, y_train), (x_val, y_val)],
-        callbacks = [save_callback_catboost],
-        logging_level='Silent'
-    )
-    joblib.dump(catboost_final, os.path.join(model_path, 'catboost.pkl'))
+    os.makedirs(model_path, exist_ok=True)
+    os.makedirs(log_path, exist_ok=True)
 
-    return catboost_final
+    try:
+        train = load_data(os.path.join(data_path_input, "train.csv"))
+        validation = load_data(os.path.join(data_path_input, "validation.csv"))
 
+        X_train, y_train = train_val_test_split(train)
+        X_val, y_val = train_val_test_split(validation)
 
-def ensemble_model(lightgbm, xgboost, catboost, x_train, y_train):
-    
-    voting_regressor = VotingRegressor(
-        estimators=[
-            ('lightgbm', lightgbm),
-            ('xgboost', xgboost),
-            ('catboost', catboost)
-        ]
-    )
-    
-    voting_regressor.fit(x_train, y_train)
-    joblib.dump(voting_regressor, os.path.join(model_path, 'ensemble_model.pkl'))
+        model_params =load_yaml(os.path.join(yaml_path, 'params.yaml'))
+        
+        save_callback_xgboost = SaveAllIterationsCallback_Xgboost(log_path)
+        save_callback_catboost = SaveAllIterationsCallback_Catboost(log_path)
 
+        lightgbm_model = lightgbm_final_model(model_params["lightgbm_model"], X_train, y_train, X_val, y_val, model_path)
+        xgboost_model = xgboost_final_model(model_params["xgboost_model"], X_train, y_train, X_val, y_val, save_callback_xgboost, model_path)
+        catboost_model = catboost_final_model(model_params["catboost_model"], X_train, y_train, X_val, y_val, save_callback_catboost, model_path)
 
-
-
-
-train = pd.read_csv(os.path.join(data_path_input, "train.csv"))
-validation = pd.read_csv(os.path.join(data_path_input, "validation.csv"))
-
-X_train, y_train = train_val_test_split(train)
-X_val, y_val = train_val_test_split(validation)
-
-model_params = yaml.safe_load(open(os.path.join(yaml_path, 'params.yaml'), 'r'))['model_building']
-lightgbm_params = model_params["lightgbm_model"]
-xgboost_params = model_params["xgboost_model"]
-catboost_params = model_params["catboost_model"]
-
-lightgbm_model = lightgbm_final_model(lightgbm_params, X_train, y_train, X_val, y_val)
-xgboost_model = xgboost_final_model(xgboost_params, X_train, y_train, X_val, y_val)
-catboost_model = catboost_final_model(catboost_params, X_train, y_train, X_val, y_val)
-
-ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train)
+        ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train, model_path)
+    except Exception as e:
+        raise Exception(f"An error occured: {e}")
 
