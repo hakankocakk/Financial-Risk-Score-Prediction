@@ -106,5 +106,6 @@ In the terminal where you are running the API application, stop the API by press
 
 ### **About the Developer**
 - Hakan KOCAK
+- dependabot[bot]: It detected security vulnerabilities in 2 frameworks and warned them. It suggested a new version.
 
 
