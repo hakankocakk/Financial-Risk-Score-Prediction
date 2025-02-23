@@ -12,7 +12,7 @@ def load_data(path : str) -> pd.DataFrame:
         raise Exception(f"Error loading data from {path} : {e}")
 
 
-def load_yaml(yaml_path) -> str:
+def load_yaml(yaml_path : str) -> dict:
     try:
         with open(os.path.join(yaml_path, 'params.yaml'), 'r') as file:
             size_params = yaml.safe_load(file)['data_collection']
