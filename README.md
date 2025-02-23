@@ -51,3 +51,58 @@ Show model performance
 ```bash
 dvc metrics show
 ```
+
+### Testing the model with API
+Start FastAPI application:
+```bash
+uvicorn src.main:app --reload
+```
+Open API documentation page:
+[API Dokümantasyonu](http://127.0.0.1:8000/docs)  
+
+Sending a POST request:
+Click the "POST" button and then the "Try it out" button.  
+```bash
+{
+  "Age": 32,
+  "AnnualIncome": 32097,
+  "CreditScore": 586,
+  "EmploymentStatus": "Employed",
+  "EducationLevel": "Bachelor",
+  "Experience": 0,
+  "LoanAmount": 35206,
+  "LoanDuration": 60,
+  "MaritalStatus": "Single",
+  "NumberOfDependents": 2,
+  "HomeOwnershipStatus": "Rent",
+  "MonthlyDebtPayments": 662,
+  "CreditCardUtilizationRate": 0.475820793978558,
+  "NumberOfOpenCreditLines": 4,
+  "NumberOfCreditInquiries": 2,
+  "DebtToIncomeRatio": 0.4553739117467006,
+  "BankruptcyHistory": 0,
+  "LoanPurpose": "Debt Consolidation",
+  "PreviousLoanDefaults": 0,
+  "PaymentHistory": 24,
+  "LengthOfCreditHistory": 14,
+  "SavingsAccountBalance": 611,
+  "CheckingAccountBalance": 1091,
+  "TotalAssets": 40962,
+  "TotalLiabilities": 2852,
+  "MonthlyIncome": 2674,
+  "UtilityBillsPaymentHistory": 0.97994463185461,
+  "JobTenure": 6,
+  "NetWorth": 38110,
+  "BaseInterestRate": 0.2472059999999999,
+  "InterestRate": 0.2512794061689278,
+  "MonthlyLoanPayment": 1035.9850545848378,
+  "TotalDebtToIncomeRatio": 0.634820097050131
+}
+```
+Add this text and click "Execute" button.
+
+
+### **About the Developer**
+- Hakan KOCAK
+
+
