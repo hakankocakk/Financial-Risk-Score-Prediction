@@ -74,3 +74,6 @@ def main():
     except Exception as e:
         raise Exception(f"An error occured: {e}")
     
+
+if __name__ == "__main__":
+    main()
