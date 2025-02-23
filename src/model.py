@@ -79,7 +79,7 @@ def train_val_test_split(dataframe: pd.DataFrame):
 
 def load_yaml(yaml_path : str) -> dict:
     try:
-        with open(os.path.join(yaml_path, 'params.yaml'), 'r') as file:
+        with open(yaml_path, 'r') as file:
             size_params = yaml.safe_load(file)['model_building']
             return size_params
     except Exception as e:
@@ -219,4 +219,7 @@ def main():
         ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train, model_path)
     except Exception as e:
         raise Exception(f"An error occured: {e}")
+    
+if __name__ == "__main__":
+    main()
 
