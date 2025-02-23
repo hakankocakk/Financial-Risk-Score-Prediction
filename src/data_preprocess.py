@@ -13,7 +13,7 @@ def load_data(path : str) -> pd.DataFrame:
         raise Exception(f"Error loading data from {path} : {e}")
     
 
-def create_cols_types(dataframe: pd.DataFrame, threshold_cat=8):
+def create_cols_types(dataframe : pd.DataFrame, threshold_cat=8):
     try:
         cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
         num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]
@@ -25,7 +25,7 @@ def create_cols_types(dataframe: pd.DataFrame, threshold_cat=8):
         raise Exception(f"Dataframe not found : {e}")
 
 
-def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
+def feature_engineering(dataframe : pd.DataFrame) -> pd.DataFrame:
     try:
         dataframe["AnIncomeToAssetsRatio"] = dataframe["AnnualIncome"] / dataframe["TotalAssets"]
         dataframe["AnExperienceToAnIncomeRatio"] = dataframe["Experience"] / dataframe["AnnualIncome"]
@@ -40,7 +40,7 @@ def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
         raise Exception(f"Feature not found: {e}")
 
 
-def ordinalencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
+def ordinalencoding(dataframe : pd.DataFrame, train=True) -> pd.DataFrame:
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     Employment = ['Employed', 'Self-Employed', 'Unemployed']
     columns_to_encode = ["EmploymentStatus"]
@@ -66,7 +66,7 @@ def ordinalencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
             raise Exception(f"Error loading model file {e}")
 
 
-def onehotencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
+def onehotencoding(dataframe : pd.DataFrame, train=True) -> pd.DataFrame:
 
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     one_hot_cat_cols = ['EducationLevel', 'MaritalStatus', 'HomeOwnershipStatus', 'LoanPurpose', 'NumberOfDependents']
@@ -100,8 +100,8 @@ def onehotencoding(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
             raise Exception(f"Error load model file {e}")
     
     
-def normalization(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
-    
+def normalization(dataframe : pd.DataFrame, train=True) -> pd.DataFrame:
+
     model_path = os.path.join(os.path.dirname(__file__), "model", "process_model")
     num_cols = ['Age', 'AnnualIncome', 'CreditScore', 'Experience', 'LoanAmount', 'LoanDuration', 'MonthlyDebtPayments', 
                 'CreditCardUtilizationRate', 'NumberOfOpenCreditLines', 'NumberOfCreditInquiries', 'DebtToIncomeRatio', 
@@ -132,7 +132,7 @@ def normalization(dataframe: pd.DataFrame, train=True) -> pd.DataFrame:
             raise Exception(f"Error load model file {e}")
 
 
-def save_data(data: pd.DataFrame,  data_path : str) -> None:
+def save_data(data : pd.DataFrame,  data_path : str) -> None:
     try:
         data.to_csv(data_path, index=False)
     except KeyError as e:
