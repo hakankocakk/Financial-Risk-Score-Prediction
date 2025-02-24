@@ -1,39 +1,44 @@
 stages:
   data_collection:
-    cmd: python src/data_collection.py
+    cmd: python src/data/data_collection.py
     deps:
-    - src/data_collection.py
+    - src/data/data_collection.py
     params:
     - data_collection.val_test_size
     - data_collection.test_size
     outs:
-    - data/raw
+    - data/interim
   data_preprocess:
-    cmd: python src/data_preprocess.py
+    cmd: python src/features/data_preprocess.py
     deps:
-    - data/raw
-    - src/data_preprocess.py
+    - data/interim
+    - src/features/data_preprocess.py
     outs:
     - data/processed
-    - src/model/process_model
+    - models/ordinal_encoder.pkl
+    - models/one_hot_encoder.pkl
+    - models/standardscaler.pkl
   model_building:
-    cmd: python src/model.py
+    cmd: python src/model/model_building.py
     deps:
     - data/processed
-    - src/model.py
+    - src/model/model_building.py
     params:
     - model_building.lightgbm_model
     - model_building.xgboost_model
     - model_building.catboost_model
     outs:
-    - src/model/ml_model
+    - models/lightgbm.pkl
+    - models/xgboost.pkl
+    - models/catboost.pkl
+    - models/ensemble_model.pkl
     metrics:
-    - src/model/log
+    - models/logs
   model_evaluation:
-    cmd: python src/model_eval.py
+    cmd: python src/model/model_eval.py
     deps:
     - data/processed
-    - src/model.py
-    - src/model/ml_model
+    - src/model/model_eval.py
+    - models
     metrics:
-    - src/model/evaluation
+    - reports/metrics.json
