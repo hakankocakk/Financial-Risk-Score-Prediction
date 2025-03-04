@@ -61,7 +61,7 @@ def regression_report(model, X, y, eval_path):
 
 def main():
 
-    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed")
+    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
     reports_path = os.path.join(os.path.dirname(__file__), "..", "..", "reports")
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
 
