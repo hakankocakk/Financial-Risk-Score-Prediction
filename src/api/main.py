@@ -13,7 +13,7 @@ app = FastAPI(
     description="Predicting Financial Risk Score"
 )
 
-def data(FinancialInformation : FinancialInformation):
+def data(FinancialInformation : FinancialInformation, model_path):
     sample = pd.DataFrame({
         "Age" : [FinancialInformation.Age],
         "AnnualIncome" : [FinancialInformation.AnnualIncome],
@@ -51,14 +51,14 @@ def data(FinancialInformation : FinancialInformation):
     })
 
     sample = dp.feature_engineering(sample)
-    sample = dp.ordinalencoding(sample, train=False)
-    sample = dp.onehotencoding(sample, train=False)
-    sample = dp.normalization(sample, train=False)
+    sample = dp.ordinalencoding(sample, model_path, train=False)
+    sample = dp.onehotencoding(sample, model_path, train=False)
+    sample = dp.normalization(sample, model_path, train=False)
 
     return sample
 
 
-def model_load(path):
+def model_load(path : str):
     ensemble_model = joblib.load(path)
     return ensemble_model
 
@@ -70,8 +70,8 @@ def index():
 
 @app.post("/prediction")
 def model_predict(FinancialInformation : FinancialInformation):
-    sample = data(FinancialInformation)
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
+    sample = data(FinancialInformation, model_path)
     model = model_load(os.path.join(model_path, "ensemble_model.pkl"))
     predicted_score = model.predict(sample)
     return np.round(predicted_score[0], 2)
