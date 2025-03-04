@@ -6,7 +6,7 @@ import os
 from src.data.data_model import FinancialInformation
 import src.features.data_preprocess as dp
 
-model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
+
 
 app = FastAPI(
     title="Financial Risk Score Prediction",
@@ -71,6 +71,7 @@ def index():
 @app.post("/prediction")
 def model_predict(FinancialInformation : FinancialInformation):
     sample = data(FinancialInformation)
+    model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
     model = model_load(os.path.join(model_path, "ensemble_model.pkl"))
     predicted_score = model.predict(sample)
     return np.round(predicted_score[0], 2)
