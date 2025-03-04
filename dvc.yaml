@@ -7,21 +7,21 @@ stages:
     - data_collection.val_test_size
     - data_collection.test_size
     outs:
-    - data/interim
+    - datas/interim
   data_preprocess:
     cmd: python src/features/data_preprocess.py
     deps:
-    - data/interim
+    - datas/interim
     - src/features/data_preprocess.py
     outs:
-    - data/processed
+    - datas/processed
     - models/ordinal_encoder.pkl
     - models/one_hot_encoder.pkl
     - models/standardscaler.pkl
   model_building:
     cmd: python src/model/model_building.py
     deps:
-    - data/processed
+    - datas/processed
     - src/model/model_building.py
     params:
     - model_building.lightgbm_model
@@ -37,8 +37,8 @@ stages:
   model_evaluation:
     cmd: python src/model/model_eval.py
     deps:
-    - data/processed
+    - datas/processed
     - src/model/model_eval.py
     - models
     metrics:
-    - reports/metrics.json
+    - reports/test_metrics.json
