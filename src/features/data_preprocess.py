@@ -140,9 +140,10 @@ def save_data(data : pd.DataFrame,  data_path : str) -> None:
     
 
 def main():
-    interim_data_path = os.path.join(os.path.dirname(__file__), "..", "..","data", "interim")
-    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed")
+    interim_data_path = os.path.join(os.path.dirname(__file__), "..", "..","datas", "interim")
+    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
+    os.makedirs(processed_data_path)
 
 
     try:
