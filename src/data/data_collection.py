@@ -51,9 +51,9 @@ def save_data(data: pd.DataFrame,  data_path : str) -> None:
 def main():
 
     yaml_path = os.path.join(os.path.dirname(__file__), "..", "..")
-    raw_data_path = os.path.join(os.path.dirname(__file__), "..", "..","data", "raw", "financial_risk_scores.csv")
-    interim_data_path = os.path.join(os.path.dirname(__file__), "..", "..","data", "interim")
-    print(interim_data_path)
+    raw_data_path = os.path.join(os.path.dirname(__file__), "..", "..","datas", "raw", "financial_risk_scores.csv")
+    interim_data_path = os.path.join(os.path.dirname(__file__), "..", "..","datas", "interim")
+    os.makedirs(interim_data_path)
 
     try:
         size_params = load_yaml(yaml_path)
