@@ -53,7 +53,6 @@ class SaveAllIterationsCallback_Catboost:
 
         self.model_log.append(evals_result)
 
-        # JSON dosyasına yazma
         with open(os.path.join(self.log_path,'catboost_model_iterations.json'), 'w') as f:
             json.dump(self.model_log, f, indent=4)
             
@@ -103,7 +102,7 @@ def save_all_iterations_callback(env):
 
     model_log.append(evals_result)
 
-    log_path = os.path.join(os.path.dirname(__file__), "model", "log")
+    log_path = os.path.join(os.path.dirname(__file__), "..", "..","models", "logs")
     with open(os.path.join(log_path,'lightgbm_model_iterations.json'), 'w') as f:
         json.dump(model_log, f, indent=4)
 
@@ -192,7 +191,7 @@ def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train 
 
 def main():
 
-    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed")
+    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
     log_path = os.path.join(os.path.dirname(__file__), "..", "..","models", "logs")
     yaml_path = os.path.join(os.path.dirname(__file__), "..", "..")
