@@ -55,10 +55,10 @@ dvc metrics show
 ### Testing the model with API
 Start FastAPI application:
 ```bash
-uvicorn src.main:app --reload
+uvicorn src.api.main:app --reload
 ```
 Open API documentation page:
-[API Dokümantasyonu](http://127.0.0.1:8000/docs)  
+[API Documentation](http://127.0.0.1:8000/docs)  
 
 Sending a POST request:
 Click the `POST` button and then the `Try it out` button.  
@@ -106,6 +106,6 @@ In the terminal where you are running the API application, stop the API by press
 
 ### **About the Developer**
 - Hakan KOCAK
-- dependabot[bot]: It detected security vulnerabilities in 2 frameworks and warned them. It suggested a new version.
+
 
 
