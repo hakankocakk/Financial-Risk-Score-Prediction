@@ -1,11 +1,14 @@
 import pandas as pd
 import os
 import yaml
+import joblib
+import json
 
 from sklearn.model_selection import GridSearchCV, cross_validate
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import joblib
-import json
+
+import mlflow
+import mlflow.sklearn
 
 from lightgbm import LGBMRegressor, callback
 from xgboost import XGBRegressor
@@ -35,8 +38,15 @@ class SaveAllIterationsCallback_Xgboost(TrainingCallback):
         
         self.model_log.append(evals_result)
 
+        
+        for log in self.model_log:
+            mlflow.log_metric("train_rmse", log["train_rmse"], step=log["iteration"])
+            mlflow.log_metric("valid_rmse", log["valid_rmse"], step=log["iteration"])
+
         with open(os.path.join(self.log_path, 'xgboost_model_iterations.json'), 'w') as f:
             json.dump(self.model_log, f, indent=4)
+
+        self.model_log.clear()
 
 
 class SaveAllIterationsCallback_Catboost:
@@ -47,14 +57,22 @@ class SaveAllIterationsCallback_Catboost:
     def after_iteration(self, info):
         evals_result = {
             'iteration': info.iteration,
-            'train_rmse': info.metrics['validation_0']['RMSE'],
-            'valid_rmse': info.metrics['validation_1']['RMSE']
+            'train_rmse': info.metrics['validation_0']['RMSE'][-1],
+            'valid_rmse': info.metrics['validation_1']['RMSE'][-1]
         }
 
+        
         self.model_log.append(evals_result)
+
+        
+        for log in self.model_log:
+            mlflow.log_metric("train_rmse", log["train_rmse"], step=log["iteration"])
+            mlflow.log_metric("valid_rmse", log["valid_rmse"], step=log["iteration"])
 
         with open(os.path.join(self.log_path,'catboost_model_iterations.json'), 'w') as f:
             json.dump(self.model_log, f, indent=4)
+
+        self.model_log.clear()
             
         return True
 
@@ -102,21 +120,33 @@ def save_all_iterations_callback(env):
 
     model_log.append(evals_result)
 
+    
+    for log in model_log:
+        mlflow.log_metric("train_rmse", log["train_rmse"], step=log["iteration"])
+        mlflow.log_metric("valid_rmse", log["valid_rmse"], step=log["iteration"])
+
+
     log_path = os.path.join(os.path.dirname(__file__), "..", "..","models", "logs")
     with open(os.path.join(log_path,'lightgbm_model_iterations.json'), 'w') as f:
         json.dump(model_log, f, indent=4)
+    
+    model_log.clear()
 
 
 
 def lightgbm_final_model(lightgbm_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, model_path : str):
     try:
-        best_params = lightgbm_params
-        lgbm_final = LGBMRegressor(**best_params).fit(
-            x_train, y_train,
-            eval_set = [(x_train, y_train), (x_val, y_val)],
-            eval_metric = 'rmse',
-            callbacks = [log_callback, save_all_iterations_callback]
-        )
+        with mlflow.start_run(run_name="LightGBM Model Logs"):
+            best_params = lightgbm_params
+            lgbm_final = LGBMRegressor(**best_params).fit(
+                x_train, y_train,
+                eval_set = [(x_train, y_train), (x_val, y_val)],
+                eval_metric = 'rmse',
+                callbacks = [log_callback, save_all_iterations_callback]
+            )
+            mlflow.log_params(best_params)
+            mlflow.sklearn.log_model(lgbm_final, "LightGBM")
+            mlflow.log_artifact(__file__)
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
     except Exception as e:
@@ -131,12 +161,16 @@ def lightgbm_final_model(lightgbm_params : dict, x_train : pd.DataFrame, y_train
 
 def xgboost_final_model(xgboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_xgboost, model_path : str):
     try:
-        xgboost_best_params = xgboost_params
-        xgboost_final = XGBRegressor(**xgboost_best_params).fit(
-            x_train, y_train,
-            eval_set = [(x_train, y_train), (x_val, y_val)],
-            callbacks = [save_callback_xgboost]
-        )
+        with mlflow.start_run(run_name="XGBoost Model Logs"):
+            xgboost_best_params = xgboost_params
+            xgboost_final = XGBRegressor(**xgboost_best_params).fit(
+                x_train, y_train,
+                eval_set = [(x_train, y_train), (x_val, y_val)],
+                callbacks = [save_callback_xgboost]
+            )
+            mlflow.log_params(xgboost_best_params)
+            mlflow.sklearn.log_model(xgboost_final, "XGBoost")
+            mlflow.log_artifact(__file__)
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
     except Exception as e:
@@ -150,14 +184,17 @@ def xgboost_final_model(xgboost_params : dict, x_train : pd.DataFrame, y_train :
 
 def catboost_final_model(catboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_catboost,  model_path : str):
     try:
-        catboost_best_params = catboost_params
-        
-        catboost_final = CatBoostRegressor(**catboost_best_params).fit(
-            x_train, y_train,
-            eval_set = [(x_train, y_train), (x_val, y_val)],
-            callbacks = [save_callback_catboost],
-            logging_level='Silent'
-        )
+        with mlflow.start_run(run_name="CatBoost Model Logs"):
+            catboost_best_params = catboost_params
+            catboost_final = CatBoostRegressor(**catboost_best_params).fit(
+                x_train, y_train,
+                eval_set = [(x_train, y_train), (x_val, y_val)],
+                callbacks = [save_callback_catboost],
+                logging_level='Silent'
+            )
+            mlflow.log_params(catboost_best_params)
+            mlflow.sklearn.log_model(catboost_final, "CatBoost")
+            mlflow.log_artifact(__file__)
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
     except Exception as e:
@@ -170,16 +207,31 @@ def catboost_final_model(catboost_params : dict, x_train : pd.DataFrame, y_train
 
 
 
-def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train : pd.DataFrame, model_path : pd.DataFrame) ->None:
-    try: 
-        voting_regressor = VotingRegressor(
-            estimators=[
-                ('lightgbm', lightgbm),
-                ('xgboost', xgboost),
-                ('catboost', catboost)
-            ]
-        )
-        voting_regressor.fit(x_train, y_train)
+def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, model_path : pd.DataFrame) ->None:
+    try:
+        with mlflow.start_run(run_name="Ensemble Model"):
+            voting_regressor = VotingRegressor(
+                estimators=[
+                    ('lightgbm', lightgbm),
+                    ('xgboost', xgboost),
+                    ('catboost', catboost)
+                ]
+            )
+            voting_regressor.fit(x_train, y_train)
+            predict = voting_regressor.predict(x_val)
+
+            mse = mean_squared_error(y_val, predict)
+            rmse = mean_squared_error(y_val, predict, squared=False)
+            mae = mean_absolute_error(y_val, predict)
+            r2 = r2_score(y_val, predict)
+
+            mlflow.log_metric("Mean Squared Error", mse)
+            mlflow.log_metric("Root Mean Squared Error", rmse)
+            mlflow.log_metric("Mean Absolute Error", mae)
+            mlflow.log_metric("R2 Score", r2)
+
+            mlflow.sklearn.log_model(voting_regressor, "ensemble_model")
+            mlflow.log_artifact(__file__)
     except Exception as e:
         raise Exception(f"Error model training : {e}")
     try:
@@ -190,6 +242,9 @@ def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train 
 
 
 def main():
+
+    mlflow.set_experiment("Financial_Risk_Score_Prediction_Models")
+    mlflow.set_tracking_uri("http://127.0.0.1:5000")
 
     processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
@@ -214,7 +269,7 @@ def main():
         xgboost_model = xgboost_final_model(model_params["xgboost_model"], X_train, y_train, X_val, y_val, save_callback_xgboost, model_path)
         catboost_model = catboost_final_model(model_params["catboost_model"], X_train, y_train, X_val, y_val, save_callback_catboost, model_path)
 
-        ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train, model_path)
+        ensemble_model(lightgbm_model, xgboost_model, catboost_model, X_train, y_train, X_val, y_val, model_path)
     except Exception as e:
         raise Exception(f"An error occured: {e}")
     
