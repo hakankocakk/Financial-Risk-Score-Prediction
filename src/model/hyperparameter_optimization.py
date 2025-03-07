@@ -136,7 +136,7 @@ def GridSearch_catboost(x_train, y_train, x_val, y_val):
             catboost_search = GridSearchCV(catboost,
                                            catboost_params,
                                            cv=5,
-                                           n_jobs=2,
+                                           n_jobs=1,
                                            verbose=False).fit(x_train, y_train)
             
             for i in range(len(catboost_search.cv_results_["params"])):
@@ -184,8 +184,8 @@ def main():
         X_train, y_train = train_val_test_split(train)
         X_val, y_val = train_val_test_split(validation)
 
-        GridSearch_lightgbm(X_train, y_train, X_val, y_val)
-        GridSearch_xgboost(X_train, y_train, X_val, y_val)
+        #GridSearch_lightgbm(X_train, y_train, X_val, y_val)
+        #GridSearch_xgboost(X_train, y_train, X_val, y_val)
         GridSearch_catboost(X_train, y_train, X_val, y_val)
 
     except Exception as e:
