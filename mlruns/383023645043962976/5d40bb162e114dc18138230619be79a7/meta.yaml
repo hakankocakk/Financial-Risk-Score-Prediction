@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Hakan/Desktop/Financial-Risk-Score-Prediction/mlruns/383023645043962976/5d40bb162e114dc18138230619be79a7/artifacts
+end_time: 1741354575482
+entry_point_name: ''
+experiment_id: '383023645043962976'
+lifecycle_stage: active
+run_id: 5d40bb162e114dc18138230619be79a7
+run_name: Experiment 4
+run_uuid: 5d40bb162e114dc18138230619be79a7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1741354575409
+status: 3
+tags: []
+user_id: Hakan

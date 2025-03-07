@@ -1,0 +1,16 @@
+artifact_uri: file:///C:/Users/Hakan/Desktop/Financial-Risk-Score-Prediction/mlruns/383023645043962976/3fdabf91c7c74983800406e632006943/artifacts
+deleted_time: 1741353632692
+end_time: 1741353586416
+entry_point_name: ''
+experiment_id: '383023645043962976'
+lifecycle_stage: deleted
+run_id: 3fdabf91c7c74983800406e632006943
+run_name: CatBoost Hyperparameter Optimization
+run_uuid: 3fdabf91c7c74983800406e632006943
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1741353576816
+status: 4
+tags: []
+user_id: Hakan
