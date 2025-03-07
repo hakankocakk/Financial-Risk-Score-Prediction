@@ -184,8 +184,8 @@ def main():
         X_train, y_train = train_val_test_split(train)
         X_val, y_val = train_val_test_split(validation)
 
-        #GridSearch_lightgbm(X_train, y_train, X_val, y_val)
-        #GridSearch_xgboost(X_train, y_train, X_val, y_val)
+        GridSearch_lightgbm(X_train, y_train, X_val, y_val)
+        GridSearch_xgboost(X_train, y_train, X_val, y_val)
         GridSearch_catboost(X_train, y_train, X_val, y_val)
 
     except Exception as e:
