@@ -11,6 +11,8 @@ from lightgbm import LGBMRegressor
 from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
 
+import dagshub
+
 
 
 def load_data(path : str) -> pd.DataFrame:
@@ -171,8 +173,11 @@ def GridSearch_catboost(x_train, y_train, x_val, y_val):
 
 def main():
 
+    dagshub.init(repo_owner='hakankocakk', repo_name='Financial-Risk-Score-Prediction', mlflow=True)
+
     mlflow.set_experiment("Financial_Risk_Score_Prediction_Experiments")
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    #mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri("https://dagshub.com/hakankocakk/Financial-Risk-Score-Prediction.mlflow")
 
     processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
 
