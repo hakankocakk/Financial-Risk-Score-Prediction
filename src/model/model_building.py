@@ -3,6 +3,7 @@ import os
 import yaml
 import joblib
 import json
+import dagshub
 
 from sklearn.model_selection import GridSearchCV, cross_validate
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -10,6 +11,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import mlflow
 import mlflow.sklearn
 from mlflow.models import infer_signature
+from mlflow.tracking import MlflowClient
+
 
 from lightgbm import LGBMRegressor, callback
 from xgboost import XGBRegressor
@@ -214,7 +217,7 @@ def catboost_final_model(catboost_params : dict, x_train : pd.DataFrame, y_train
 
 def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, model_path : pd.DataFrame) ->None:
     try:
-        with mlflow.start_run(run_name="Ensemble Model"):
+        with mlflow.start_run(run_name="Ensemble Model") as run:
             voting_regressor = VotingRegressor(
                 estimators=[
                     ('lightgbm', lightgbm),
@@ -237,6 +240,23 @@ def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train 
 
             mlflow.sklearn.log_model(voting_regressor, "ensemble_model")
             mlflow.log_artifact(__file__)
+
+            run_id = run.info.run_id
+
+            client = MlflowClient()
+            model_uri = f"runs:/{run_id}/artifacts/ensemble_model"
+            reg = mlflow.register_model(model_uri, "ensemble_model")
+            model_version = reg.version
+            new_state = "Staging"
+
+            client.transition_model_version_stage(
+                 name="ensemble_model",
+                 version=model_version,
+                 stage=new_state,
+                 archive_existing_versions=True
+            )
+
+
     except Exception as e:
         raise Exception(f"Error model training : {e}")
     try:
@@ -248,8 +268,12 @@ def ensemble_model(lightgbm, xgboost, catboost, x_train : pd.DataFrame, y_train 
 
 def main():
 
-    mlflow.set_experiment("Financial_Risk_Score_Prediction_Models")
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    dagshub.init(repo_owner='hakankocakk', repo_name='Financial-Risk-Score-Prediction', mlflow=True)
+
+    mlflow.set_experiment("Financial_Risk_Score_Prediction")
+    #mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri("https://dagshub.com/hakankocakk/Financial-Risk-Score-Prediction.mlflow")
+
 
     processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
     model_path = os.path.join(os.path.dirname(__file__), "..", "..","models")
