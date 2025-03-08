@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 import mlflow
 import mlflow.sklearn
+from mlflow.models import infer_signature
 
 from lightgbm import LGBMRegressor, callback
 from xgboost import XGBRegressor
@@ -137,16 +138,18 @@ def save_all_iterations_callback(env):
 def lightgbm_final_model(lightgbm_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, model_path : str):
     try:
         with mlflow.start_run(run_name="LightGBM Model Logs"):
-            best_params = lightgbm_params
-            lgbm_final = LGBMRegressor(**best_params).fit(
+            lgbm_final = LGBMRegressor(**lightgbm_params).fit(
                 x_train, y_train,
                 eval_set = [(x_train, y_train), (x_val, y_val)],
                 eval_metric = 'rmse',
                 callbacks = [log_callback, save_all_iterations_callback]
             )
-            mlflow.log_params(best_params)
-            mlflow.sklearn.log_model(lgbm_final, "LightGBM")
+
+            mlflow.log_params(lightgbm_params)
+            signature = infer_signature(x_val,lgbm_final.predict(x_val))
+            mlflow.sklearn.log_model(lgbm_final, "LightGBM", signature=signature)
             mlflow.log_artifact(__file__)
+
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
     except Exception as e:
@@ -162,14 +165,15 @@ def lightgbm_final_model(lightgbm_params : dict, x_train : pd.DataFrame, y_train
 def xgboost_final_model(xgboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_xgboost, model_path : str):
     try:
         with mlflow.start_run(run_name="XGBoost Model Logs"):
-            xgboost_best_params = xgboost_params
-            xgboost_final = XGBRegressor(**xgboost_best_params).fit(
+            xgboost_final = XGBRegressor(**xgboost_params).fit(
                 x_train, y_train,
                 eval_set = [(x_train, y_train), (x_val, y_val)],
                 callbacks = [save_callback_xgboost]
             )
-            mlflow.log_params(xgboost_best_params)
-            mlflow.sklearn.log_model(xgboost_final, "XGBoost")
+
+            mlflow.log_params(xgboost_params)
+            signature = infer_signature(x_val,xgboost_final.predict(x_val))
+            mlflow.sklearn.log_model(xgboost_final, "XGBoost", signature=signature)
             mlflow.log_artifact(__file__)
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
@@ -185,15 +189,16 @@ def xgboost_final_model(xgboost_params : dict, x_train : pd.DataFrame, y_train :
 def catboost_final_model(catboost_params : dict, x_train : pd.DataFrame, y_train : pd.DataFrame, x_val : pd.DataFrame, y_val : pd.DataFrame, save_callback_catboost,  model_path : str):
     try:
         with mlflow.start_run(run_name="CatBoost Model Logs"):
-            catboost_best_params = catboost_params
-            catboost_final = CatBoostRegressor(**catboost_best_params).fit(
+            catboost_final = CatBoostRegressor(**catboost_params).fit(
                 x_train, y_train,
                 eval_set = [(x_train, y_train), (x_val, y_val)],
                 callbacks = [save_callback_catboost],
                 logging_level='Silent'
             )
-            mlflow.log_params(catboost_best_params)
-            mlflow.sklearn.log_model(catboost_final, "CatBoost")
+
+            mlflow.log_params(catboost_params)
+            signature = infer_signature(x_val,catboost_final.predict(x_val))
+            mlflow.sklearn.log_model(catboost_final, "CatBoost", signature=signature)
             mlflow.log_artifact(__file__)
     except (TypeError, ValueError) as e:
         raise Exception(f"Parameter error : {e}")
