@@ -1,0 +1,71 @@
+artifact_path: LightGBM
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.4
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.4.1.post1
+is_signature_from_type_hint: false
+mlflow_version: 2.20.3
+model_size_bytes: 1190309
+model_uuid: bba73520850d497f996f1cbbc9d5e88e
+run_id: 34b18f65a2c246baa38fe72116f9eeaa
+signature:
+  inputs: '[{"type": "double", "name": "Age", "required": true}, {"type": "double",
+    "name": "AnnualIncome", "required": true}, {"type": "double", "name": "CreditScore",
+    "required": true}, {"type": "double", "name": "EmploymentStatus", "required":
+    true}, {"type": "double", "name": "Experience", "required": true}, {"type": "double",
+    "name": "LoanAmount", "required": true}, {"type": "double", "name": "LoanDuration",
+    "required": true}, {"type": "double", "name": "MonthlyDebtPayments", "required":
+    true}, {"type": "double", "name": "CreditCardUtilizationRate", "required": true},
+    {"type": "double", "name": "NumberOfOpenCreditLines", "required": true}, {"type":
+    "double", "name": "NumberOfCreditInquiries", "required": true}, {"type": "double",
+    "name": "DebtToIncomeRatio", "required": true}, {"type": "long", "name": "BankruptcyHistory",
+    "required": true}, {"type": "long", "name": "PreviousLoanDefaults", "required":
+    true}, {"type": "double", "name": "PaymentHistory", "required": true}, {"type":
+    "double", "name": "LengthOfCreditHistory", "required": true}, {"type": "double",
+    "name": "SavingsAccountBalance", "required": true}, {"type": "double", "name":
+    "CheckingAccountBalance", "required": true}, {"type": "double", "name": "TotalAssets",
+    "required": true}, {"type": "double", "name": "TotalLiabilities", "required":
+    true}, {"type": "double", "name": "MonthlyIncome", "required": true}, {"type":
+    "double", "name": "UtilityBillsPaymentHistory", "required": true}, {"type": "double",
+    "name": "JobTenure", "required": true}, {"type": "double", "name": "NetWorth",
+    "required": true}, {"type": "double", "name": "BaseInterestRate", "required":
+    true}, {"type": "double", "name": "InterestRate", "required": true}, {"type":
+    "double", "name": "MonthlyLoanPayment", "required": true}, {"type": "double",
+    "name": "TotalDebtToIncomeRatio", "required": true}, {"type": "double", "name":
+    "AnIncomeToAssetsRatio", "required": true}, {"type": "double", "name": "AnExperienceToAnIncomeRatio",
+    "required": true}, {"type": "double", "name": "LoantoAnIncomeRatio", "required":
+    true}, {"type": "double", "name": "DependetToAnIncomeRatio", "required": true},
+    {"type": "double", "name": "LoansToAssetsRatio", "required": true}, {"type": "double",
+    "name": "LoanPaymentToIncomeRatio", "required": true}, {"type": "double", "name":
+    "AnIncomeToDepts", "required": true}, {"type": "double", "name": "AssetsToLoan",
+    "required": true}, {"type": "double", "name": "EducationLevel_Bachelor", "required":
+    true}, {"type": "double", "name": "EducationLevel_Doctorate", "required": true},
+    {"type": "double", "name": "EducationLevel_High School", "required": true}, {"type":
+    "double", "name": "EducationLevel_Master", "required": true}, {"type": "double",
+    "name": "MaritalStatus_Married", "required": true}, {"type": "double", "name":
+    "MaritalStatus_Single", "required": true}, {"type": "double", "name": "MaritalStatus_Widowed",
+    "required": true}, {"type": "double", "name": "HomeOwnershipStatus_Other", "required":
+    true}, {"type": "double", "name": "HomeOwnershipStatus_Own", "required": true},
+    {"type": "double", "name": "HomeOwnershipStatus_Rent", "required": true}, {"type":
+    "double", "name": "LoanPurpose_Debt Consolidation", "required": true}, {"type":
+    "double", "name": "LoanPurpose_Education", "required": true}, {"type": "double",
+    "name": "LoanPurpose_Home", "required": true}, {"type": "double", "name": "LoanPurpose_Other",
+    "required": true}, {"type": "double", "name": "NumberOfDependents_1", "required":
+    true}, {"type": "double", "name": "NumberOfDependents_2", "required": true}, {"type":
+    "double", "name": "NumberOfDependents_3", "required": true}, {"type": "double",
+    "name": "NumberOfDependents_4", "required": true}, {"type": "double", "name":
+    "NumberOfDependents_5", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-03-08 18:23:01.184137'

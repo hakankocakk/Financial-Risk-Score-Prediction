@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Hakan/Desktop/Financial-Risk-Score-Prediction/mlruns/216492452741100123/34b18f65a2c246baa38fe72116f9eeaa/artifacts
+end_time: 1741458192967
+entry_point_name: ''
+experiment_id: '216492452741100123'
+lifecycle_stage: active
+run_id: 34b18f65a2c246baa38fe72116f9eeaa
+run_name: LightGBM Model Logs
+run_uuid: 34b18f65a2c246baa38fe72116f9eeaa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1741458166356
+status: 3
+tags: []
+user_id: Hakan
