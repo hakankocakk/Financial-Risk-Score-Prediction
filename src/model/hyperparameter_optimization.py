@@ -3,8 +3,7 @@ import os
 import mlflow
 import mlflow.sklearn
 
-
-from sklearn.model_selection import GridSearchCV, cross_validate
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 from lightgbm import LGBMRegressor
@@ -14,13 +13,12 @@ from catboost import CatBoostRegressor
 import dagshub
 
 
-
-def load_data(path : str) -> pd.DataFrame:
+def load_data(path: str) -> pd.DataFrame:
     try:
         return pd.read_csv(path)
     except Exception as e:
         raise Exception(f"Error loading data from {path} : {e}")
-    
+
 
 def train_val_test_split(dataframe: pd.DataFrame):
     try:
@@ -29,28 +27,33 @@ def train_val_test_split(dataframe: pd.DataFrame):
         return X_, y_
     except KeyError as e:
         raise Exception(f"Dataframe not found : {e}")
-    
+
 
 def GridSearch_lightgbm(x_train, y_train, x_val, y_val):
     try:
-        with mlflow.start_run(run_name="LightGBM Hyperparameter Optimization") as parent_run:
+        with mlflow.start_run(run_name="LightGBM Hyperparameter Optimization"):
 
             lgbm_params = {"learning_rate": [0.01, 0.02, 0.05, 0.1],
-                        "n_estimators": [200, 300, 350, 400],
-                        "colsample_bytree": [0.9, 0.8, 1],
-                        "device": ["gpu"]}
-            
+                           "n_estimators": [200, 300, 350, 400],
+                           "colsample_bytree": [0.9, 0.8, 1],
+                           "device": ["gpu"]}
+
             lgbm = LGBMRegressor(verbosity=0, device='gpu')
             lgbm_search = GridSearchCV(lgbm,
                                        lgbm_params,
                                        cv=5,
                                        n_jobs=-1,
                                        verbose=0).fit(x_train, y_train)
-            
+
             for i in range(len(lgbm_search.cv_results_["params"])):
-                with mlflow.start_run(run_name=f"Experiment {i+1}", nested=True) as child_run:
+                with mlflow.start_run(
+                    run_name=f"Experiment {i+1}", nested=True
+                ):
                     mlflow.log_params(lgbm_search.cv_results_["params"][i])
-                    mlflow.log_metric("mean test score", lgbm_search.cv_results_['mean_test_score'][i])
+                    mlflow.log_metric(
+                        "mean test score",
+                        lgbm_search.cv_results_['mean_test_score'][i]
+                    )
 
             mlflow.log_params(lgbm_search.best_params_)
 
@@ -71,14 +74,14 @@ def GridSearch_lightgbm(x_train, y_train, x_val, y_val):
 
             mlflow.sklearn.log_model(best_lightgbm, "BestModel")
             mlflow.log_artifact(__file__)
-                
+
     except Exception as e:
         raise Exception(f"An error occured: {e}")
-    
+
 
 def GridSearch_xgboost(x_train, y_train, x_val, y_val):
     try:
-        with mlflow.start_run(run_name="XGBoost Hyperparameter Optimization") as parent_run:
+        with mlflow.start_run(run_name="XGBoost Hyperparameter Optimization"):
 
             xgboost_params = {
                 "learning_rate": [0.001, 0.01, 0.1],
@@ -86,18 +89,23 @@ def GridSearch_xgboost(x_train, y_train, x_val, y_val):
                 "n_estimators": [100, 500, 1000],
                 "colsample_bytree": [None, 0.7, 1]
             }
-            
+
             xgboost = XGBRegressor(verbosity=0, device='gpu')
             xgboost_search = GridSearchCV(xgboost,
                                           xgboost_params,
                                           cv=5,
                                           n_jobs=-1,
                                           verbose=0).fit(x_train, y_train)
-            
+
             for i in range(len(xgboost_search.cv_results_["params"])):
-                with mlflow.start_run(run_name=f"Experiment {i+1}", nested=True) as child_run:
+                with mlflow.start_run(
+                    run_name=f"Experiment {i+1}", nested=True
+                ):
                     mlflow.log_params(xgboost_search.cv_results_["params"][i])
-                    mlflow.log_metric("mean test score", xgboost_search.cv_results_['mean_test_score'][i])
+                    mlflow.log_metric(
+                        "mean test score",
+                        xgboost_search.cv_results_['mean_test_score'][i]
+                    )
 
             mlflow.log_params(xgboost_search.best_params_)
 
@@ -118,14 +126,14 @@ def GridSearch_xgboost(x_train, y_train, x_val, y_val):
 
             mlflow.sklearn.log_model(best_xgboost, "BestModel")
             mlflow.log_artifact(__file__)
-                
+
     except Exception as e:
         raise Exception(f"An error occured: {e}")
-    
+
 
 def GridSearch_catboost(x_train, y_train, x_val, y_val):
     try:
-        with mlflow.start_run(run_name="CatBoost Hyperparameter Optimization") as parent_run:
+        with mlflow.start_run(run_name="CatBoost Hyperparameter Optimization"):
 
             catboost_params = {
                 "iterations": [200, 500, 700],
@@ -133,18 +141,23 @@ def GridSearch_catboost(x_train, y_train, x_val, y_val):
                 "depth": [3, 6, None],
                 "task_type": ["GPU"]
             }
-            
+
             catboost = CatBoostRegressor()
             catboost_search = GridSearchCV(catboost,
                                            catboost_params,
                                            cv=5,
                                            n_jobs=1,
                                            verbose=False).fit(x_train, y_train)
-            
+
             for i in range(len(catboost_search.cv_results_["params"])):
-                with mlflow.start_run(run_name=f"Experiment {i+1}", nested=True) as child_run:
+                with mlflow.start_run(
+                    run_name=f"Experiment {i+1}", nested=True
+                ):
                     mlflow.log_params(catboost_search.cv_results_["params"][i])
-                    mlflow.log_metric("mean test score", catboost_search.cv_results_['mean_test_score'][i])
+                    mlflow.log_metric(
+                        "mean test score",
+                        catboost_search.cv_results_['mean_test_score'][i]
+                    )
 
             mlflow.log_params(catboost_search.best_params_)
 
@@ -165,26 +178,34 @@ def GridSearch_catboost(x_train, y_train, x_val, y_val):
 
             mlflow.sklearn.log_model(best_catboost, "BestModel")
             mlflow.log_artifact(__file__)
-                
+
     except Exception as e:
         raise Exception(f"An error occured: {e}")
 
 
-
 def main():
 
-    dagshub.init(repo_owner='hakankocakk', repo_name='Financial-Risk-Score-Prediction', mlflow=True)
+    dagshub.init(repo_owner='hakankocakk',
+                 repo_name='Financial-Risk-Score-Prediction', mlflow=True)
 
     mlflow.set_experiment("Financial_Risk_Score_Prediction_Experiments")
-    #mlflow.set_tracking_uri("http://127.0.0.1:5000")
-    mlflow.set_tracking_uri("https://dagshub.com/hakankocakk/Financial-Risk-Score-Prediction.mlflow")
+    # mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri(
+        "https://dagshub.com/hakankocakk/"
+        "Financial-Risk-Score-Prediction.mlflow"
+    )
 
-    processed_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "datas", "processed")
-
+    processed_data_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "datas", "processed"
+    )
 
     try:
-        train = load_data(os.path.join(processed_data_path, "train.csv"))
-        validation = load_data(os.path.join(processed_data_path, "validation.csv"))
+        train = load_data(
+            os.path.join(processed_data_path, "train.csv")
+        )
+        validation = load_data(
+            os.path.join(processed_data_path, "validation.csv")
+        )
 
         X_train, y_train = train_val_test_split(train)
         X_val, y_val = train_val_test_split(validation)
@@ -195,6 +216,7 @@ def main():
 
     except Exception as e:
         raise Exception(f"An error occured: {e}")
-    
+
+
 if __name__ == "__main__":
     main()
