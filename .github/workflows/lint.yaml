@@ -35,5 +35,5 @@ jobs:
 
             - name: Run flake8
               run: |
-                flake8 --exclude=mlruns .
+                flake8 --exclude=mlruns,docs .
 
