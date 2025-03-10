@@ -67,10 +67,12 @@ def main():
 
         train_data, validation_data, test_data = data_split(data, size_params)
 
-        save_data(train_data, os.path.join(interim_data_path, "train.csv"))
-        save_data(validation_data, os.path.join(interim_data_path,
-                                                "validation.csv"))
-        save_data(test_data, os.path.join(interim_data_path, "test.csv"))
+        save_data(train_data,
+                  os.path.join(interim_data_path, "train.csv"))
+        save_data(validation_data,
+                  os.path.join(interim_data_path, "validation.csv"))
+        save_data(test_data,
+                  os.path.join(interim_data_path, "test.csv"))
     except Exception as e:
         raise Exception(f"An error occured: {e}")
 
