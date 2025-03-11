@@ -1,4 +1,4 @@
-name: Financial Risk Score Prediction CI
+name: Financial Risk Score Prediction CI - Linting Test
 
 
 on: 
