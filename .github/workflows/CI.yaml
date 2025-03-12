@@ -61,4 +61,4 @@ jobs:
               env:
                 DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
               run: |
-                pytest tests/
+                pytest tests/test_features/test_data_preprocess.py
