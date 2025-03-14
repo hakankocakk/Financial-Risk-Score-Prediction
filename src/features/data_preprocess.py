@@ -74,7 +74,10 @@ def ordinalencoding(
 
     if train:
         try:
-            enc = OrdinalEncoder(categories=[Employment])
+            enc = OrdinalEncoder(
+                categories=[Employment],
+                handle_unknown='use_encoded_value', unknown_value=-1
+            )
             dataframe[columns_to_encode] = enc.fit_transform(
                 dataframe[columns_to_encode]
             )
