@@ -23,7 +23,10 @@ Data was taken from Kaggle
 - Performance analysis with metrics such as "Mean Squared Error", "Root Mean Squared Error", "Mean Absolute Error", "R2 Score".
 
 #### 5) API:
-- Creating an API with fastapi framework
+- Creating an API with fastapi framework.
+
+#### 6) CI/CD
+- Creating CI/CD with Github Actions.
 
 ## Installation
 
