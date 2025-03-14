@@ -5,8 +5,8 @@ stages:
     deps:
     - path: src/data/data_collection.py
       hash: md5
-      md5: 5634f9633acbe1bc987649bd927c2597
-      size: 2565
+      md5: cecc2dc937c74ed5f18e51883e95b9f9
+      size: 2872
     params:
       params.yaml:
         data_collection.test_size: 0.5
@@ -27,8 +27,8 @@ stages:
       nfiles: 3
     - path: src/features/data_preprocess.py
       hash: md5
-      md5: f139f68b1a153e7b347046715591d424
-      size: 8642
+      md5: 449e1024dfa8aedce8f1e6a4092326e1
+      size: 9746
     outs:
     - path: datas/processed
       hash: md5
@@ -37,16 +37,16 @@ stages:
       nfiles: 3
     - path: models/one_hot_encoder.pkl
       hash: md5
-      md5: 8ee1f86c0d5365b1f9d72a6e2d85a5a2
-      size: 2790
+      md5: aef819a0d44ed5258e8c7485894d37fc
+      size: 2784
     - path: models/ordinal_encoder.pkl
       hash: md5
-      md5: 61bb53c6a046f267d05c7a32d7404318
-      size: 1116
+      md5: d4d145ed59c92f3be01d797d9153ec73
+      size: 1126
     - path: models/standardscaler.pkl
       hash: md5
-      md5: 528951b2297ca9cd805e0f1c23a1e2ad
-      size: 2469
+      md5: 5ba74c5559cbea156059a30d8b1304d0
+      size: 2463
   model_building:
     cmd: python src/model/model_building.py
     deps:
