@@ -302,7 +302,7 @@ def main():
          repo_name='Financial-Risk-Score-Prediction', mlflow=True
     )
 
-    mlflow.set_experiment("Financial_Risk_Score_Prediction")
+    mlflow.set_experiment("Financial_Risk_Score_Predicts")
     # mlflow.set_tracking_uri("http://127.0.0.1:5000")
     mlflow.set_tracking_uri(
          "https://dagshub.com/hakankocakk/"
