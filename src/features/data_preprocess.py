@@ -209,7 +209,7 @@ def main():
     model_path = os.path.join(
         os.path.dirname(__file__), "..", "..", "models"
     )
-    os.makedirs(processed_data_path)
+    os.makedirs(processed_data_path, exist_ok=True)
 
     try:
         train = load_data(
