@@ -136,11 +136,12 @@ def main():
         }
 
         response = requests.post(
-            "http://127.0.0.1:8000/prediction", data=json.dumps(input_data)
+            "http://fastapi:8000/prediction", data=json.dumps(input_data)
         )
         if response.status_code == 200:
             prediction = response.json()
             st.success(f"Estimated Financial Risk Score: {prediction}")
+
         else:
             st.error("The prediction was not possible. Please try again.")
 
