@@ -9,14 +9,14 @@ Data was taken from Kaggle
 #### 2) Data Preprocessing:
 - Determination of categorical and numerical features
 - Feature engineering
-- Digitization of categorical data (Ordinal Encoding and One-Hot Encoding)
+- Numericalization of categorical data (Ordinal Encoding and One-Hot Encoding)
 - Normalization (Standard Scaler)
 
 #### 3) Model Selection and Training:
 
-- XGBoost hyperparameter optimization (Just added parameters)
-- LightGBM hyperparameter optimization (Just added parameters)
-- CatBoost hyperparameter optimization (Just added parameters)
+- XGBoost hyperparameter optimization
+- LightGBM hyperparameter optimization
+- CatBoost hyperparameter optimization
 - Establishing an ensemble model (VotingRegressor)
 
 #### 4) Model Evaluation:
@@ -27,6 +27,18 @@ Data was taken from Kaggle
 
 #### 6) CI/CD
 - Creating CI/CD with Github Actions.
+
+#### 7) Web Application
+- Creating an interactive web interface using Streamlit.
+- Connecting the frontend to the backend API.
+- Integrating a database for data storage.
+
+#### 8) Containerization:
+- Containerizing the application using Docker.
+- Creating Dockerfiles for the API, web application.
+- Managing services with Docker Compose.
+- Ensuring portability and scalability of the application.
+
 
 ## Installation
 
@@ -106,6 +118,45 @@ Add this text and click `Execute` button:
 You can see the prediction result in the `Response body` section.
 
 In the terminal where you are running the API application, stop the API by pressing `CTRL + C`.
+
+### Testing the Web Application
+
+Start FastAPI application:
+```bash
+uvicorn src.api.main:app --reload
+```
+
+Replace this code in `app/streamlit_app.py` file with the following code.
+```python
+response = requests.post(
+    "http://fastapi:8000/prediction", data=json.dumps(input_data)
+)
+```
+
+```python
+response = requests.post(
+    "http://127.0.0.1:8000/prediction", data=json.dumps(input_data)
+)
+```
+
+Start the web application.
+```bash
+streamlit run app/streamlit_app.py
+```
+
+### Testing the Web Application with Docker
+
+Creating Docker images
+```bash
+docker-compose build
+```
+
+Start Container
+```bash
+docker-compose up
+```
+Open web application page:  
+[Web Application](http://localhost:8001/)
 
 ### **About the Developer**
 - Hakan KOCAK
