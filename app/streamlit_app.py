@@ -98,7 +98,7 @@ def main():
         "Total Debt To Income Ratio", 0.0, 1.0, None
     )
 
-    if st.button("Tahmin Yap"):
+    if st.button("Prediction"):
         input_data = {
             "Age": age,
             "AnnualIncome": annual_income,
