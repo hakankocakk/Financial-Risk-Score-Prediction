@@ -59,7 +59,8 @@ def save_to_db(
                 predicted_risk_score REAL
             )""")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO predictions (
                 age, annual_income, credit_score, employment_status,
                 education_level, experience, loan_amount, loan_duration,
@@ -76,44 +77,43 @@ def save_to_db(
                 monthly_loan_payment, total_debt_to_income_ratio,
                 predicted_risk_score
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-
-        (
-            FinancialInformation.Age,
-            FinancialInformation.AnnualIncome,
-            FinancialInformation.CreditScore,
-            FinancialInformation.EmploymentStatus,
-            FinancialInformation.EducationLevel,
-            FinancialInformation.Experience,
-            FinancialInformation.LoanAmount,
-            FinancialInformation.LoanDuration,
-            FinancialInformation.MaritalStatus,
-            FinancialInformation.NumberOfDependents,
-            FinancialInformation.HomeOwnershipStatus,
-            FinancialInformation.MonthlyDebtPayments,
-            FinancialInformation.CreditCardUtilizationRate,
-            FinancialInformation.NumberOfOpenCreditLines,
-            FinancialInformation.NumberOfCreditInquiries,
-            FinancialInformation.DebtToIncomeRatio,
-            FinancialInformation.BankruptcyHistory,
-            FinancialInformation.LoanPurpose,
-            FinancialInformation.PreviousLoanDefaults,
-            FinancialInformation.PaymentHistory,
-            FinancialInformation.LengthOfCreditHistory,
-            FinancialInformation.SavingsAccountBalance,
-            FinancialInformation.CheckingAccountBalance,
-            FinancialInformation.TotalAssets,
-            FinancialInformation.TotalLiabilities,
-            FinancialInformation.MonthlyIncome,
-            FinancialInformation.UtilityBillsPaymentHistory,
-            FinancialInformation.JobTenure,
-            FinancialInformation.NetWorth,
-            FinancialInformation.BaseInterestRate,
-            FinancialInformation.InterestRate,
-            FinancialInformation.MonthlyLoanPayment,
-            FinancialInformation.TotalDebtToIncomeRatio,
-            predicted_score
-        ))
+                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                      FinancialInformation.Age,
+                      FinancialInformation.AnnualIncome,
+                      FinancialInformation.CreditScore,
+                      FinancialInformation.EmploymentStatus,
+                      FinancialInformation.EducationLevel,
+                      FinancialInformation.Experience,
+                      FinancialInformation.LoanAmount,
+                      FinancialInformation.LoanDuration,
+                      FinancialInformation.MaritalStatus,
+                      FinancialInformation.NumberOfDependents,
+                      FinancialInformation.HomeOwnershipStatus,
+                      FinancialInformation.MonthlyDebtPayments,
+                      FinancialInformation.CreditCardUtilizationRate,
+                      FinancialInformation.NumberOfOpenCreditLines,
+                      FinancialInformation.NumberOfCreditInquiries,
+                      FinancialInformation.DebtToIncomeRatio,
+                      FinancialInformation.BankruptcyHistory,
+                      FinancialInformation.LoanPurpose,
+                      FinancialInformation.PreviousLoanDefaults,
+                      FinancialInformation.PaymentHistory,
+                      FinancialInformation.LengthOfCreditHistory,
+                      FinancialInformation.SavingsAccountBalance,
+                      FinancialInformation.CheckingAccountBalance,
+                      FinancialInformation.TotalAssets,
+                      FinancialInformation.TotalLiabilities,
+                      FinancialInformation.MonthlyIncome,
+                      FinancialInformation.UtilityBillsPaymentHistory,
+                      FinancialInformation.JobTenure,
+                      FinancialInformation.NetWorth,
+                      FinancialInformation.BaseInterestRate,
+                      FinancialInformation.InterestRate,
+                      FinancialInformation.MonthlyLoanPayment,
+                      FinancialInformation.TotalDebtToIncomeRatio,
+                      predicted_score
+                  )
+        )
         connect.commit()
 
 
