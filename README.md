@@ -18,6 +18,7 @@ Data was taken from Kaggle
 - LightGBM hyperparameter optimization
 - CatBoost hyperparameter optimization
 - Establishing an ensemble model (VotingRegressor)
+- MLflow and Dagshub for monitoring, version control, and deployment of machine learning models.
 
 #### 4) Model Evaluation:
 - Performance analysis with metrics such as "Mean Squared Error", "Root Mean Squared Error", "Mean Absolute Error", "R2 Score".
@@ -25,15 +26,19 @@ Data was taken from Kaggle
 #### 5) API:
 - Creating an API with fastapi framework.
 
-#### 6) CI/CD
+#### 6) Test:
+- PEP 8 code style checking with Flake8
+- Unit Testing with pytest
+
+#### 7) CI/CD
 - Creating CI/CD with Github Actions.
 
-#### 7) Web Application
+#### 8) Web Application
 - Creating an interactive web interface using Streamlit.
 - Connecting the frontend to the backend API.
 - Integrating a database for data storage.
 
-#### 8) Containerization:
+#### 9) Containerization:
 - Containerizing the application using Docker.
 - Creating Dockerfiles for the API, web application.
 - Managing services with Docker Compose.
