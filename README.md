@@ -149,6 +149,7 @@ Start the web application.
 streamlit run app/streamlit_app.py
 ```
 
+
 ### Testing the Web Application with Docker
 
 Creating Docker images
@@ -161,7 +162,12 @@ Start Container
 docker-compose up
 ```
 Open web application page:  
-[Web Application](http://localhost:8001/)
+[Web Application](http://localhost:8001/)  
+
+
+#### Demo:
+
+![Demo GIF](reports/demo.gif)
 
 ### **About the Developer**
 - Hakan KOCAK
