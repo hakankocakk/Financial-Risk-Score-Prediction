@@ -71,7 +71,9 @@ def main():
     try:
         test = load_data(os.path.join(processed_data_path, "test.csv"))
         X_test, y_test = train_val_test_split(test)
-        model = model_load(os.path.join(model_path, "optimization_ensemble_model.pkl"))
+        model = model_load(
+            os.path.join(model_path, "optimization_ensemble_model.pkl")
+        )
         regression_report(model, X_test, y_test, reports_path)
     except Exception as e:
         raise Exception(f"An error occured: {e}")
