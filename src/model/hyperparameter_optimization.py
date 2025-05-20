@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import mlflow
 import mlflow.sklearn
+import optuna
 
-from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 from lightgbm import LGBMRegressor
@@ -29,36 +29,83 @@ def train_val_test_split(dataframe: pd.DataFrame):
         raise Exception(f"Dataframe not found : {e}")
 
 
-def GridSearch_lightgbm(x_train, y_train, x_val, y_val):
+def Optuna_lightgbm(x_train, y_train, x_val, y_val):
     try:
         with mlflow.start_run(run_name="LightGBM Hyperparameter Optimization"):
 
-            lgbm_params = {"learning_rate": [0.01, 0.02, 0.05, 0.1],
-                           "n_estimators": [200, 300, 350, 400],
-                           "colsample_bytree": [0.9, 0.8, 1],
-                           "device": ["gpu"]}
+            def objective(trial):
+                params = {
+                    "n_estimators": trial.suggest_int(
+                        "n_estimators", 1000, 10000, step=500
+                    ),
+                    "num_leaves": trial.suggest_int(
+                        "num_leaves", 20, 256
+                    ),
+                    "max_depth": trial.suggest_int(
+                        "max_depth", 3, 16
+                    ),
+                    "learning_rate": trial.suggest_float(
+                        "learning_rate", 0.005, 0.3, log=True
+                    ),
+                    "min_child_samples": trial.suggest_int(
+                        "min_child_samples", 5, 100
+                    ),
+                    "min_child_weight": trial.suggest_float(
+                        "min_child_weight", 1e-3, 10.0, log=True
+                    ),
+                    "subsample": trial.suggest_float(
+                        "subsample", 0.5, 1.0
+                    ),
+                    "colsample_bytree": trial.suggest_float(
+                        "colsample_bytree", 0.5, 1.0
+                    ),
+                    "reg_alpha": trial.suggest_float(
+                        "reg_alpha", 1e-4, 10.0, log=True
+                    ),
+                    "reg_lambda": trial.suggest_float(
+                        "reg_lambda", 1e-4, 10.0, log=True
+                    ),
+                    "scale_pos_weight": trial.suggest_float(
+                        "scale_pos_weight", 1.0, 10.0
+                    ),
+                    "random_state": 42,
+                    "n_jobs": -1,
+                    "verbosity": -1,
+                    'device': 'gpu',
+                    'eval_metric': 'RMSE',
+                    'early_stopping_rounds': 100
+                }
 
-            lgbm = LGBMRegressor(verbosity=0, device='gpu')
-            lgbm_search = GridSearchCV(lgbm,
-                                       lgbm_params,
-                                       cv=5,
-                                       n_jobs=-1,
-                                       verbose=0).fit(x_train, y_train)
+                model = LGBMRegressor(**params)
+                model.fit(
+                    x_train, y_train,
+                    eval_set=[(x_val, y_val)],
+                )
 
-            for i in range(len(lgbm_search.cv_results_["params"])):
+                preds = model.predict(x_val)
+                rmse = mean_squared_error(y_val, preds, squared=False)
+
+                return rmse
+
+            study = optuna.create_study(direction='minimize')
+            study.optimize(objective, n_trials=50, show_progress_bar=True)
+
+            for i in range(len(study.trials)):
                 with mlflow.start_run(
                     run_name=f"Experiment {i+1}", nested=True
                 ):
-                    mlflow.log_params(lgbm_search.cv_results_["params"][i])
+                    mlflow.log_params(study.trials[i].params)
                     mlflow.log_metric(
-                        "mean test score",
-                        lgbm_search.cv_results_['mean_test_score'][i]
+                        "Root Mean Squared Error",
+                        study.trials[i].values[0]
                     )
 
-            mlflow.log_params(lgbm_search.best_params_)
+            mlflow.log_params(study.best_params)
 
-            best_lightgbm = lgbm_search.best_estimator_
-            best_lightgbm.fit(x_train, y_train)
+            best_lightgbm = LGBMRegressor(**study.best_params).fit(
+                x_train, y_train,
+                eval_set=[(x_train, y_train), (x_val, y_val)]
+            )
 
             predict = best_lightgbm.predict(x_val)
 
@@ -79,38 +126,84 @@ def GridSearch_lightgbm(x_train, y_train, x_val, y_val):
         raise Exception(f"An error occured: {e}")
 
 
-def GridSearch_xgboost(x_train, y_train, x_val, y_val):
+def Optuna_xgboost(x_train, y_train, x_val, y_val):
     try:
         with mlflow.start_run(run_name="XGBoost Hyperparameter Optimization"):
 
-            xgboost_params = {
-                "learning_rate": [0.001, 0.01, 0.1],
-                "max_depth": [5, 8, None],
-                "n_estimators": [100, 500, 1000],
-                "colsample_bytree": [None, 0.7, 1]
-            }
+            def objective(trial):
+                params = {
+                    "n_estimators": trial.suggest_int(
+                        "n_estimators", 1000, 10000, step=500
+                    ),
+                    "max_depth": trial.suggest_int(
+                        "max_depth", 3, 15
+                    ),
+                    "learning_rate": trial.suggest_float(
+                        "learning_rate", 1e-3, 1.0, log=True
+                    ),
+                    "subsample": trial.suggest_float(
+                        "subsample", 0.5, 1.0
+                    ),
+                    "colsample_bytree": trial.suggest_float(
+                        "colsample_bytree", 0.5, 1.0
+                    ),
+                    "colsample_bylevel": trial.suggest_float(
+                        "colsample_bylevel", 0.5, 1.0
+                    ),
+                    "colsample_bynode": trial.suggest_float(
+                        "colsample_bynode", 0.5, 1.0
+                    ),
+                    "min_child_weight": trial.suggest_float(
+                        "min_child_weight", 1, 10
+                    ),
+                    "reg_alpha": trial.suggest_float(
+                        "reg_alpha", 1e-3, 10.0, log=True
+                    ),
+                    "reg_lambda": trial.suggest_float(
+                        "reg_lambda", 1e-3, 10.0, log=True
+                    ),
+                    "gamma": trial.suggest_float("gamma", 0, 10.0),
+                    "scale_pos_weight": trial.suggest_float(
+                        "scale_pos_weight", 0.5, 10.0
+                    ),
+                    "random_state": 42,
+                    "n_jobs": -1,
+                    "device": "cuda",
+                    "eval_metric": "rmse",
+                }
 
-            xgboost = XGBRegressor(verbosity=0, device='gpu')
-            xgboost_search = GridSearchCV(xgboost,
-                                          xgboost_params,
-                                          cv=5,
-                                          n_jobs=-1,
-                                          verbose=0).fit(x_train, y_train)
+                model = XGBRegressor(**params)
+                model.fit(
+                    x_train, y_train,
+                    eval_set=[(x_val, y_val)],
+                    verbose=0
+                )
 
-            for i in range(len(xgboost_search.cv_results_["params"])):
+                preds = model.predict(x_val)
+                rmse = mean_squared_error(y_val, preds, squared=False)
+
+                return rmse
+
+            study = optuna.create_study(direction='minimize')
+            study.optimize(objective, n_trials=50, show_progress_bar=True)
+
+            for i in range(len(study.trials)):
                 with mlflow.start_run(
                     run_name=f"Experiment {i+1}", nested=True
                 ):
-                    mlflow.log_params(xgboost_search.cv_results_["params"][i])
+                    mlflow.log_params(study.trials[i].params)
                     mlflow.log_metric(
-                        "mean test score",
-                        xgboost_search.cv_results_['mean_test_score'][i]
+                        "Root Mean Squared Error",
+                        study.trials[i].values[0]
                     )
 
-            mlflow.log_params(xgboost_search.best_params_)
+            mlflow.log_params(study.best_params)
 
-            best_xgboost = xgboost_search.best_estimator_
-            best_xgboost.fit(x_train, y_train)
+            best_xgboost = XGBRegressor(**study.best_params).fit(
+                x_train, y_train,
+                eval_set=[(x_train, y_train), (x_val, y_val)],
+                verbose=0
+            )
 
             predict = best_xgboost.predict(x_val)
 
@@ -131,38 +224,83 @@ def GridSearch_xgboost(x_train, y_train, x_val, y_val):
         raise Exception(f"An error occured: {e}")
 
 
-def GridSearch_catboost(x_train, y_train, x_val, y_val):
+def Optuna_catboost(x_train, y_train, x_val, y_val):
     try:
         with mlflow.start_run(run_name="CatBoost Hyperparameter Optimization"):
 
-            catboost_params = {
-                "iterations": [200, 500, 700],
-                "learning_rate": [0.01, 0.02, 0.05, 0.1],
-                "depth": [3, 6, None],
-                "task_type": ["GPU"]
-            }
+            def objective(trial):
+                grow_policy = trial.suggest_categorical(
+                    "grow_policy", ["SymmetricTree", "Depthwise", "Lossguide"]
+                )
 
-            catboost = CatBoostRegressor()
-            catboost_search = GridSearchCV(catboost,
-                                           catboost_params,
-                                           cv=5,
-                                           n_jobs=1,
-                                           verbose=False).fit(x_train, y_train)
+                boosting_type = (
+                    trial.suggest_categorical(
+                        "boosting_type", ["Plain", "Ordered"]
+                    )
+                    if grow_policy == "SymmetricTree"
+                    else "Plain"
+                )
 
-            for i in range(len(catboost_search.cv_results_["params"])):
+                params = {
+                    "iterations": trial.suggest_int(
+                        "iterations", 1000, 10000, step=500
+                    ),
+                    "learning_rate": trial.suggest_float(
+                        "learning_rate", 0.005, 0.3, log=True
+                    ),
+                    "depth": trial.suggest_int("depth", 4, 10),
+                    "l2_leaf_reg": trial.suggest_float(
+                        "l2_leaf_reg", 1e-3, 10.0, log=True
+                    ),
+                    "bagging_temperature": trial.suggest_float(
+                        "bagging_temperature", 0, 1.0
+                    ),
+                    "border_count": trial.suggest_int(
+                        "border_count", 32, 255
+                    ),
+                    "random_strength": trial.suggest_float(
+                        "random_strength", 0.1, 10
+                    ),
+                    "grow_policy": grow_policy,
+                    "boosting_type": boosting_type,
+                    "random_seed": 42,
+                    "verbose": 0,
+                    'eval_metric': 'RMSE',
+                    "task_type": "GPU",
+                    'early_stopping_rounds': 100
+                }
+
+                model = CatBoostRegressor(**params)
+                model.fit(
+                    x_train, y_train,
+                    eval_set=[(x_val, y_val)],
+                    verbose=0
+                )
+
+                preds = model.predict(x_val)
+                rmse = mean_squared_error(y_val, preds, squared=False)
+
+                return rmse
+
+            study = optuna.create_study(direction='minimize')
+            study.optimize(objective, n_trials=3, show_progress_bar=True)
+
+            for i in range(len(study.trials)):
                 with mlflow.start_run(
                     run_name=f"Experiment {i+1}", nested=True
                 ):
-                    mlflow.log_params(catboost_search.cv_results_["params"][i])
+                    mlflow.log_params(study.trials[i].params)
                     mlflow.log_metric(
-                        "mean test score",
-                        catboost_search.cv_results_['mean_test_score'][i]
+                        "Root Mean Squared Error",
+                        study.trials[i].values[0]
                     )
 
-            mlflow.log_params(catboost_search.best_params_)
+            mlflow.log_params(study.best_params)
 
-            best_catboost = catboost_search.best_estimator_
-            best_catboost.fit(x_train, y_train)
+            best_catboost = CatBoostRegressor(**study.best_params).fit(
+                x_train, y_train,
+                eval_set=[(x_train, y_train), (x_val, y_val)]
+            )
 
             predict = best_catboost.predict(x_val)
 
@@ -210,9 +348,9 @@ def main():
         X_train, y_train = train_val_test_split(train)
         X_val, y_val = train_val_test_split(validation)
 
-        GridSearch_lightgbm(X_train, y_train, X_val, y_val)
-        GridSearch_xgboost(X_train, y_train, X_val, y_val)
-        GridSearch_catboost(X_train, y_train, X_val, y_val)
+        Optuna_lightgbm(X_train, y_train, X_val, y_val)
+        Optuna_xgboost(X_train, y_train, X_val, y_val)
+        Optuna_catboost(X_train, y_train, X_val, y_val)
 
     except Exception as e:
         raise Exception(f"An error occured: {e}")
