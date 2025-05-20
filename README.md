@@ -18,6 +18,7 @@ Data was taken from Kaggle
 - LightGBM hyperparameter optimization
 - CatBoost hyperparameter optimization
 - Establishing an ensemble model (VotingRegressor)
+- Ensemble model optimization with hill climbing
 - MLflow and Dagshub for monitoring, version control, and deployment of machine learning models.
 
 #### 4) Model Evaluation:
